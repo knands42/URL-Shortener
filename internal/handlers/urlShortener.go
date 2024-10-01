@@ -3,6 +3,8 @@ package handler
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"knands42/url-shortener/internal/database/repo"
+	"log"
 	"math/big"
 	"net/http"
 
@@ -36,15 +38,28 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	length := 12
 
 	resp := generateFinalHash(input, length)
+
+	_, err = h.repo.CreateShortUrl(
+		r.Context(),
+		repo.CreateShortUrlParams{
+			OriginalUrl: input,
+			ShortUrl:    resp.ShortURL,
+		},
+	)
+	if err != nil {
+		log.Printf("Failed to create short URL: %v", err)
+		http.Error(w, "Failed to create short URL", http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(resp)
 }
 
 func generateFinalHash(input string, length int) GenerateShortURLResponse {
 
-	// Hash the input using SHA256
+	// Hash the input using SHA256 to avoid collisions
 	hash := sha256.Sum256([]byte(input))
-
-	// Encode the hash to base62 instead of trimming the final result
+	// Encode the hash to base62 instead of using raw hexadecimals limited to 16 characters
 	base62Hash := base62Encode(hash[:])
 
 	return GenerateShortURLResponse{

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"knands42/url-shortener/internal/database"
+	"knands42/url-shortener/internal/database/repo"
 	handler "knands42/url-shortener/internal/handlers"
 	"knands42/url-shortener/internal/server"
 	"log"
@@ -14,25 +15,32 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
+	ctx := context.Background()
 	r := chi.NewRouter()
 	// TODO: Load env environments
 
 	// Initialize the database
 	dbConfig := database.NewDBConfig()
-	_, err := dbConfig.Connect()
+	dbConnection, err := dbConfig.Connect(ctx)
+	defer dbConnection.Close()
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
 	}
 
+	// Intialized the repository
+	repo := repo.New(dbConnection)
+
 	// Initialize the handlers
-	handlers := handler.NewHandler()
+	handlers := handler.NewHandler(repo)
 
 	// Initialize the server
 	server.NewServer(r, handlers)
-	gracefulShutdown()
+	gracefulShutdown(dbConnection)
 
 	err = http.ListenAndServe(":3333", r)
 	if err != nil {
@@ -40,7 +48,7 @@ func main() {
 	}
 }
 
-func gracefulShutdown() {
+func gracefulShutdown(conn *pgxpool.Pool) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
 		syscall.SIGHUP,  // kill -SIGHUP XXXX
@@ -58,7 +66,7 @@ func gracefulShutdown() {
 
 		select {
 		case <-time.After(30 * time.Second):
-			// TODO close connection
+			conn.Close()
 		case <-ctx.Done():
 			fmt.Println("Graceful shutdown")
 		}
