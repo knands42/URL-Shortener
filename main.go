@@ -20,9 +20,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-//	@title			Swagger Example API
+//	@title			Url Shortener API
 //	@version		1.0
-//	@description	This is a sample server Petstore server.
+//	@description	This is a sample server for a URL Shortener API.
 //	@termsOfService	http://swagger.io/terms/
 
 //	@contact.name	API Support
@@ -33,7 +33,7 @@ import (
 //	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host		petstore.swagger.io
-// @BasePath	/v2
+// @BasePath	/api/v1
 func main() {
 	ctx := context.Background()
 	r := chi.NewRouter()

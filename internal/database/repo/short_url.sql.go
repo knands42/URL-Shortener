@@ -35,3 +35,55 @@ func (q *Queries) CreateShortUrl(ctx context.Context, arg CreateShortUrlParams) 
 	)
 	return i, err
 }
+
+const deleteByOriginalUrl = `-- name: DeleteByOriginalUrl :exec
+DELETE FROM shortened_urls WHERE original_url = $1
+`
+
+func (q *Queries) DeleteByOriginalUrl(ctx context.Context, originalUrl string) error {
+	_, err := q.db.Exec(ctx, deleteByOriginalUrl, originalUrl)
+	return err
+}
+
+const deleteByShortUrl = `-- name: DeleteByShortUrl :exec
+DELETE FROM shortened_urls WHERE short_url = $1
+`
+
+func (q *Queries) DeleteByShortUrl(ctx context.Context, shortUrl string) error {
+	_, err := q.db.Exec(ctx, deleteByShortUrl, shortUrl)
+	return err
+}
+
+const getByOriginalUrl = `-- name: GetByOriginalUrl :one
+SELECT id, original_url, short_url, created_at, updated_at FROM shortened_urls WHERE original_url = $1
+`
+
+func (q *Queries) GetByOriginalUrl(ctx context.Context, originalUrl string) (ShortenedUrl, error) {
+	row := q.db.QueryRow(ctx, getByOriginalUrl, originalUrl)
+	var i ShortenedUrl
+	err := row.Scan(
+		&i.ID,
+		&i.OriginalUrl,
+		&i.ShortUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getByShortUrl = `-- name: GetByShortUrl :one
+SELECT id, original_url, short_url, created_at, updated_at FROM shortened_urls WHERE short_url = $1
+`
+
+func (q *Queries) GetByShortUrl(ctx context.Context, shortUrl string) (ShortenedUrl, error) {
+	row := q.db.QueryRow(ctx, getByShortUrl, shortUrl)
+	var i ShortenedUrl
+	err := row.Scan(
+		&i.ID,
+		&i.OriginalUrl,
+		&i.ShortUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

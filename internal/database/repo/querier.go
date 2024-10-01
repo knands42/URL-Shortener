@@ -10,6 +10,10 @@ import (
 
 type Querier interface {
 	CreateShortUrl(ctx context.Context, arg CreateShortUrlParams) (ShortenedUrl, error)
+	DeleteByOriginalUrl(ctx context.Context, originalUrl string) error
+	DeleteByShortUrl(ctx context.Context, shortUrl string) error
+	GetByOriginalUrl(ctx context.Context, originalUrl string) (ShortenedUrl, error)
+	GetByShortUrl(ctx context.Context, shortUrl string) (ShortenedUrl, error)
 }
 
 var _ Querier = (*Queries)(nil)
