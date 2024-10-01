@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"math/big"
 	"net/http"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type GenerateShortURLRequest struct {
-	Input  string `json:"input"`
-	Length int    `json:"length"`
+	Input  string `json:"input" valid:"required,url"`
+	Length int    `json:"length" valid:"optional,numeric,range(6|12)"`
 }
 
 type GenerateShortURLResponse struct {
@@ -24,15 +26,24 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Add validation for the input and length fields
+	_, err = govalidator.ValidateStruct(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+		// TODO: create a custom error response
+	}
 
 	input := req.Input
-	length := req.Length
-
-	if length < 6 || length > 12 {
-		http.Error(w, "Length must be between 6 and 12", http.StatusBadRequest)
-		return
+	length := 10
+	if req.Length != 0 {
+		length = req.Length
 	}
+
+	resp := generateFinalHash(input, length)
+	json.NewEncoder(w).Encode(resp)
+}
+
+func generateFinalHash(input string, length int) GenerateShortURLResponse {
 
 	// Hash the input using SHA256
 	hash := sha256.Sum256([]byte(input))
@@ -40,15 +51,8 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	// Encode the hash to base62 instead of trimming the final result
 	base62Hash := base62Encode(hash[:])
 
-	if len(base62Hash) >= length {
-		resp := GenerateShortURLResponse{
-			ShortURL: base62Hash[:length],
-		}
-
-		json.NewEncoder(w).Encode(resp)
-	} else {
-		http.Error(w, "Length must be between 6 and 12", http.StatusBadRequest)
-		return
+	return GenerateShortURLResponse{
+		ShortURL: base62Hash[:length],
 	}
 }
 
