@@ -8,6 +8,8 @@ import (
 	"math/big"
 	"net/http"
 
+	_ "knands42/url-shortener/docs"
+
 	"github.com/asaskevich/govalidator"
 )
 
@@ -19,6 +21,8 @@ type GenerateShortURLResponse struct {
 	ShortURL string `json:"short_url"`
 }
 
+// GenerateShortURL generates a short URL from the input URL
+// @Summary Generate a short URL
 func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	var req GenerateShortURLRequest
 	err := json.NewDecoder(r.Body).Decode(&req)

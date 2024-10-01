@@ -14,13 +14,30 @@ import (
 	"syscall"
 	"time"
 
+	_ "knands42/url-shortener/docs"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+//	@title			Swagger Example API
+//	@version		1.0
+//	@description	This is a sample server Petstore server.
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host		petstore.swagger.io
+// @BasePath	/v2
 func main() {
 	ctx := context.Background()
 	r := chi.NewRouter()
+
 	// TODO: Load env environments
 
 	// Initialize the database
@@ -40,6 +57,7 @@ func main() {
 
 	// Initialize the server
 	server.NewServer(r, handlers)
+
 	gracefulShutdown(dbConnection)
 
 	err = http.ListenAndServe(":3333", r)
