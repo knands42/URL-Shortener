@@ -1,52 +1,51 @@
 services:
   postgres:
     image: postgres:16.4-alpine3.20
-    container_name: go_url_shortener_postgres
+    container_name: go-url-shortener-postgres
     ports:
       - 5433:5432
     networks:
-      - go_url_shortener_network
+      - go-url-shortener-network
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=go_url_shortener_db
+      - POSTGRES_DB=url_shortener
 
   redis:
     image: redis:latest
-    container_name: go_url_shortener_redis
+    container_name: go-url-shortener-redis
     ports:
-      - 6379:6379 
+      - 6379:6379
     networks:
-      - go_url_shortener_network
+      - go-url-shortener-network
 
   jaeger:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     ports:
-      - "8081:16686"  # Jaeger UI
-      - "14268"
-      - "14250"
+      - '8081:16686' # Jaeger UI
+      - '14268'
+      - '14250'
     networks:
-      - go_url_shortener_network
+      - go-url-shortener-network
 
   otel-collector:
     image: otel/opentelemetry-collector:latest
     container_name: otel-collector
-    command: ["--config=/etc/otel-collector-config.yml"]
+    command: ['--config=/etc/otel-collector-config.yml']
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
-      - "1888:1888"   # pprof extension
-      - "13133:13133" # health_check extension
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # http gRPC receiver
-      - "55679:55679" # zpages extension
+      - '1888:1888' # pprof extension
+      - '13133:13133' # health_check extension
+      - '4317:4317' # OTLP gRPC receiver
+      - '4318:4318' # http gRPC receiver
+      - '55679:55679' # zpages extension
     depends_on:
       - jaeger
     networks:
-      - go_url_shortener_network
-
+      - go-url-shortener-network
 
 networks:
-  go_url_shortener_network:
+  go-url-shortener-network:
     driver: bridge

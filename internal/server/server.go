@@ -14,14 +14,14 @@ type Server struct {
 	handlers *handler.Handler
 }
 
-func NewServer(router *chi.Mux) *Server {
-	server := &Server{router: router}
+func NewServer(router *chi.Mux, handlers *handler.Handler) *Server {
+	server := &Server{router: router, handlers: handlers}
 
 	server.DefaultMiddlewares()
 	server.DefaultRoutes()
 	server.ApplicationRoutes()
 
-	// TOOD: Add cors
+	// TODO: Add cors
 	// TODO: Add default headers
 	return server
 }

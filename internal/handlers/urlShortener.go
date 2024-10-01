@@ -10,8 +10,7 @@ import (
 )
 
 type GenerateShortURLRequest struct {
-	Input  string `json:"input" valid:"required,url"`
-	Length int    `json:"length" valid:"optional,numeric,range(6|12)"`
+	Input string `json:"input" valid:"required,url"`
 }
 
 type GenerateShortURLResponse struct {
@@ -34,10 +33,7 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input := req.Input
-	length := 10
-	if req.Length != 0 {
-		length = req.Length
-	}
+	length := 12
 
 	resp := generateFinalHash(input, length)
 	json.NewEncoder(w).Encode(resp)
