@@ -2,7 +2,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS shortened_urls (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     original_url TEXT NOT NULL,
-    hash VARCHAR(6) NOT NULL,
+    hash VARCHAR(7) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

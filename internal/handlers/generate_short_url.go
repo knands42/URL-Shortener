@@ -53,7 +53,7 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input := req.Input
-	length := 6
+	length := 7
 
 	base62Hash := generateHash(input, length)
 

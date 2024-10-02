@@ -83,7 +83,7 @@ func Test_create_short_url(t *testing.T) {
 		t.Fatalf("Failed to decode response body: %v", err)
 	}
 
-	if data := responseBody["short_url"]; data != "https://me.li/BQRvJs" {
+	if data := responseBody["short_url"]; data != "https://me.li/BQRvJsg" {
 		t.Errorf("Expected response body to contain 'short_url' key")
 	}
 }
@@ -91,8 +91,8 @@ func Test_create_short_url(t *testing.T) {
 func Test_get_entry_by_short_url(t *testing.T) {
 	ts := httptest.NewServer(testServer.Router)
 
-	// Send a DELETE request to the /api/v1/shorten endpoint
-	req, err := http.NewRequest("GET", ts.URL+"/api/v1/url?url=https://me.li/BQRvJs&type=short_url", nil)
+	// Send a GET request to the /api/v1/shorten endpoint
+	req, err := http.NewRequest("GET", ts.URL+"/api/v1/url?url=https://me.li/BQRvJsg&type=short_url", nil)
 	if err != nil {
 		t.Fatalf("Failed to send GET request: %v", err)
 	}
@@ -117,7 +117,7 @@ func Test_get_entry_by_short_url(t *testing.T) {
 		t.Errorf("Expected response body to contain 'original_url' key")
 	}
 
-	if data := responseBody["short_url"]; data != "https://me.li/BQRvJs" {
+	if data := responseBody["short_url"]; data != "https://me.li/BQRvJsg" {
 		t.Errorf("Expected response body to contain 'short_url' key")
 	}
 }
@@ -125,7 +125,7 @@ func Test_get_entry_by_short_url(t *testing.T) {
 func Test_get_entry_by_original_url(t *testing.T) {
 	ts := httptest.NewServer(testServer.Router)
 
-	// Send a DELETE request to the /api/v1/shorten endpoint
+	// Send a GET request to the /api/v1/shorten endpoint
 	req, err := http.NewRequest("GET", ts.URL+"/api/v1/url?url=https://google.com&type=original_url", nil)
 	if err != nil {
 		t.Fatalf("Failed to send GET request: %v", err)
@@ -151,7 +151,7 @@ func Test_get_entry_by_original_url(t *testing.T) {
 		t.Errorf("Expected response body to contain 'original_url' key")
 	}
 
-	if data := responseBody["short_url"]; data != "https://me.li/BQRvJs" {
+	if data := responseBody["short_url"]; data != "https://me.li/BQRvJsg" {
 		t.Errorf("Expected response body to contain 'short_url' key")
 	}
 }
@@ -160,7 +160,7 @@ func Test_delete_entry_by_original_url(t *testing.T) {
 	ts := httptest.NewServer(testServer.Router)
 
 	// Send a DELETE request to the /api/v1/shorten endpoint
-	req, err := http.NewRequest("DELETE", ts.URL+"/api/v1/url?url=https://me.li/BQRvJs&type=short_url", nil)
+	req, err := http.NewRequest("DELETE", ts.URL+"/api/v1/url?url=https://me.li/BQRvJsg&type=short_url", nil)
 	if err != nil {
 		t.Fatalf("Failed to send DELETE request: %v", err)
 	}

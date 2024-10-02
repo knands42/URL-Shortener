@@ -18,5 +18,5 @@ func NewHandler(repo *repo.Queries) *Handler {
 }
 
 func (h *Handler) extractHashFromUrl(url string) string {
-	return url[len(url)-6:]
+	return url[len(url)-7:]
 }
