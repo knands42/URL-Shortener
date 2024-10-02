@@ -8,3 +8,4 @@ CREATE TABLE IF NOT EXISTS shortened_urls (
 );
 
 CREATE UNIQUE INDEX shortened_urls_short_url_index ON shortened_urls (short_url);
+CREATE UNIQUE INDEX shotened_urls_original_url_index ON shortened_urls (original_url);
