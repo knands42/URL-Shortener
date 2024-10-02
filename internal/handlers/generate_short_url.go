@@ -22,8 +22,16 @@ type GenerateShortURLResponse struct {
 	ShortURL string `json:"short_url"`
 }
 
-// GenerateShortURL generates a short URL from the input URL
 // @Summary Generate a short URL
+// @Description Generate a short URL from the input URL
+// @Tags URL
+// @Accept json
+// @Produce json
+// @Param input body GenerateShortURLRequest true "Input URL"
+// @Success 201 {object} GenerateShortURLResponse
+// @Failure 409 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /shorten [post]
 func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	var req GenerateShortURLRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -34,7 +42,13 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 
 	_, err = govalidator.ValidateStruct(req)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		validatorErrorResponse := utils.ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		}
+		log.Printf("Validation error: %v", err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(validatorErrorResponse)
 		return
 	}
 

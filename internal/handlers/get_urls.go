@@ -6,7 +6,6 @@ import (
 	"knands42/url-shortener/internal/utils"
 	"log"
 	"net/http"
-	"strings"
 )
 
 type GetURLResponse struct {
@@ -14,9 +13,20 @@ type GetURLResponse struct {
 	ShortUrl    string `json:"short_url"`
 }
 
-func (h *Handler) GetURL(w http.ResponseWriter, r *http.Request) {
-	urlPath := r.URL.Path
+// @Summary Get a URL entry
+// @Description Get a URL entry by providing either the original URL or the short URL
+// @Tags URL
+// @Accept json
+// @Produce json
+// @Param url query string true "URL to be deleted"
+// @Param type query string true "Type of URL to be deleted (short_url or original_url)"
+// @Success 200 {object} GetURLResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /url [get]
+func (h *Handler) GetUrl(w http.ResponseWriter, r *http.Request) {
 	urlQueryParam := r.URL.Query().Get("url")
+	urlTypeQuertParam := r.URL.Query().Get("type")
 	if urlQueryParam == "" {
 		http.Error(w, "URL is required", http.StatusBadRequest)
 		return
@@ -25,10 +35,10 @@ func (h *Handler) GetURL(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var resultDB repo.ShortenedUrl
 
-	if strings.Contains(urlPath, "/shorten") {
-		resultDB, err = h.repo.GetByOriginalUrl(r.Context(), urlQueryParam)
-	} else {
+	if urlTypeQuertParam == URL_TYPE_SHORT {
 		resultDB, err = h.repo.GetByShortUrl(r.Context(), urlQueryParam)
+	} else {
+		resultDB, err = h.repo.GetByOriginalUrl(r.Context(), urlQueryParam)
 	}
 
 	if err != nil {

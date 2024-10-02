@@ -1,16 +1,134 @@
-basePath: /v2
-host: petstore.swagger.io
+basePath: /api/v1
+definitions:
+  handler.GenerateShortURLRequest:
+    properties:
+      input:
+        type: string
+    type: object
+  handler.GenerateShortURLResponse:
+    properties:
+      short_url:
+        type: string
+    type: object
+  handler.GetURLResponse:
+    properties:
+      original_url:
+        type: string
+      short_url:
+        type: string
+    type: object
+  utils.ErrorResponse:
+    properties:
+      message:
+        type: string
+      status:
+        type: integer
+    type: object
+host: localhost:3333
 info:
   contact:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: This is a sample server Petstore server.
+  description: This is a sample server for a URL Shortener API.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Swagger Example API
+  title: Url Shortener API
   version: "1.0"
-paths: {}
+paths:
+  /shorten:
+    post:
+      consumes:
+      - application/json
+      description: Generate a short URL from the input URL
+      parameters:
+      - description: Input URL
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handler.GenerateShortURLRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.GenerateShortURLResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Generate a short URL
+      tags:
+      - URL
+  /url:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a URL entry by providing either the original URL or the
+        short URL
+      parameters:
+      - description: URL to be deleted
+        in: query
+        name: url
+        required: true
+        type: string
+      - description: Type of URL to be deleted (short_url or original_url)
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Delete a URL entry
+      tags:
+      - URL
+    get:
+      consumes:
+      - application/json
+      description: Get a URL entry by providing either the original URL or the short
+        URL
+      parameters:
+      - description: URL to be deleted
+        in: query
+        name: url
+        required: true
+        type: string
+      - description: Type of URL to be deleted (short_url or original_url)
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.GetURLResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Get a URL entry
+      tags:
+      - URL
 swagger: "2.0"

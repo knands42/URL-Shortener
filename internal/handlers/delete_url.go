@@ -5,19 +5,28 @@ import (
 	"knands42/url-shortener/internal/utils"
 	"log"
 	"net/http"
-	"strings"
 )
 
+// @Summary Delete a URL entry
+// @Description Delete a URL entry by providing either the original URL or the short URL
+// @Tags URL
+// @Accept json
+// @Produce json
+// @Param url query string true "URL to be deleted"
+// @Param type query string true "Type of URL to be deleted (short_url or original_url)"
+// @Success 204
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /url [delete]
 func (h *Handler) DeleteURL(w http.ResponseWriter, r *http.Request) {
-	urlPath := r.URL.Path
 	urlQueryParam := r.URL.Query().Get("url")
+	urlTypeQuertParam := r.URL.Query().Get("type")
 	if urlQueryParam == "" {
 		http.Error(w, "URL is required", http.StatusBadRequest)
 		return
 	}
 
 	var err error
-	if strings.Contains(urlPath, "/shorten") {
+	if urlTypeQuertParam == URL_TYPE_SHORT {
 		err = h.repo.DeleteByShortUrl(r.Context(), urlQueryParam)
 	} else {
 		err = h.repo.DeleteByOriginalUrl(r.Context(), urlQueryParam)
