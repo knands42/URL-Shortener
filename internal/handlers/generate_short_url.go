@@ -39,9 +39,9 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	input := req.Input
-	length := 12
+	length := 6
 
-	resp := generateFinalHash(input, length)
+	resp := generateFinalURL(input, length)
 
 	_, err = h.repo.CreateShortUrl(
 		r.Context(),
@@ -60,7 +60,7 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func generateFinalHash(input string, length int) GenerateShortURLResponse {
+func generateFinalURL(input string, length int) GenerateShortURLResponse {
 
 	// Hash the input using SHA256 to avoid collisions
 	hash := sha256.Sum256([]byte(input))
@@ -68,7 +68,7 @@ func generateFinalHash(input string, length int) GenerateShortURLResponse {
 	base62Hash := base62Encode(hash[:])
 
 	return GenerateShortURLResponse{
-		ShortURL: base62Hash[:length],
+		ShortURL: "https://me.li/" + base62Hash[:length],
 	}
 }
 

@@ -1,0 +1,15 @@
+meta {
+  name: Delete short url
+  type: http
+  seq: 3
+}
+
+delete {
+  url: http://localhost:3333/api/v1/shorten?url=https://google.com
+  body: none
+  auth: none
+}
+
+query {
+  url: https://google.com
+}

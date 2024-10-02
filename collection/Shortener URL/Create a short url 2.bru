@@ -1,0 +1,19 @@
+meta {
+  name: Create a short url 2
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3333/api/v1/shorten
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "input": "https://google.com" }
+}

@@ -5,8 +5,7 @@ import (
 	"knands42/url-shortener/internal/database/repo"
 	"log"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
+	"strings"
 )
 
 type GetURLResponse struct {
@@ -14,30 +13,21 @@ type GetURLResponse struct {
 	ShortUrl    string `json:"short_url"`
 }
 
-const (
-	URL_TYPE_SHORT    = "short_url"
-	URL_TYPE_ORIGINAL = "original_url"
-)
-
 func (h *Handler) GetURL(w http.ResponseWriter, r *http.Request) {
-	url := chi.URLParam(r, "url")
-	// add default value for url_type query param if not provided
-	var urlType string = URL_TYPE_SHORT
-	if r.URL.Query().Get("type") != "" {
-		urlType = r.URL.Query().Get("type")
-	}
-
-	if url == "" {
+	urlPath := r.URL.Path
+	urlQueryParam := r.URL.Query().Get("url")
+	if urlQueryParam == "" {
 		http.Error(w, "URL is required", http.StatusBadRequest)
 		return
 	}
 
-	var resultDB repo.ShortenedUrl
 	var err error
-	if urlType == URL_TYPE_SHORT {
-		resultDB, err = h.repo.GetByShortUrl(r.Context(), url)
+	var resultDB repo.ShortenedUrl
+
+	if strings.Contains(urlPath, "/shorten") {
+		resultDB, err = h.repo.GetByOriginalUrl(r.Context(), urlQueryParam)
 	} else {
-		resultDB, err = h.repo.GetByOriginalUrl(r.Context(), url)
+		resultDB, err = h.repo.GetByShortUrl(r.Context(), urlQueryParam)
 	}
 
 	// TODO: Validate error types of sqlc

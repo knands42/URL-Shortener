@@ -43,11 +43,12 @@ func main() {
 	// Initialize the database
 	dbConfig := database.NewDBConfig()
 	dbConnection, err := dbConfig.Connect(ctx)
-	defer dbConnection.Close()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
+
+	defer dbConnection.Close()
 
 	// Intialized the repository
 	repo := repo.New(dbConnection)

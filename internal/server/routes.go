@@ -23,8 +23,11 @@ func (s *Server) prefixedAPIs() chi.Router {
 	r := chi.NewRouter()
 
 	r.Post("/shorten", s.handlers.GenerateShortURL)
-	r.Get("/url/{url}", s.handlers.GetURL)
-	r.Delete("/url/{url}", s.handlers.DeleteURL)
+	r.Get("/shorten", s.handlers.GetURL)
+	r.Delete("/shorten", s.handlers.DeleteURL)
+
+	r.Get("/url", s.handlers.GetURL)
+	r.Delete("/url", s.handlers.DeleteURL)
 
 	return r
 }
