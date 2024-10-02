@@ -11,6 +11,7 @@ import (
 	"knands42/url-shortener/internal/utils"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -55,10 +56,23 @@ func Benchmark_short_url(b *testing.B) {
 
 	b.Run("GetEntry", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
+			semaphore := make(chan struct{}, 25)
+			var wg sync.WaitGroup
+
 			for j := 0; j < getAmount; j++ {
-				randomUrl := urls[rand.Intn(len(urls))]
-				getEntry(b, ts, randomUrl)
+				wg.Add(1)
+				semaphore <- struct{}{}
+
+				go func() {
+					defer wg.Done()
+					defer func() { <-semaphore }()
+
+					randomUrl := urls[rand.Intn(len(urls))]
+					getEntry(b, ts, randomUrl)
+				}()
 			}
+
+			wg.Wait()
 		}
 	})
 
