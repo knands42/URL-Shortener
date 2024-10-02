@@ -35,8 +35,7 @@ func defaultErrorHandler(next http.Handler) http.Handler {
 
 func corsMiddleware() func(next http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
-		AllowedOrigins: []string{"https://*", "http://*", "http://localhost:3333"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedOrigins:   []string{"https://*", "http://*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Requested-With"},
 		ExposedHeaders:   []string{"Link"},

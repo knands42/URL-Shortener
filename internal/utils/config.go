@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/viper"
 )
@@ -25,7 +27,7 @@ func NewConfig(env string) *Config {
 }
 
 func (c *Config) loadConfig(env string) (err error) {
-	path, _ := os.Getwd()
+	path, _ := GetRootPath()
 
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app-" + env)
@@ -39,5 +41,31 @@ func (c *Config) loadConfig(env string) (err error) {
 	}
 
 	err = viper.Unmarshal(&c)
+	return
+}
+
+// GetRootPath returns the root path of the project
+func GetRootPath() (ex string, err error) {
+	ex, _ = os.Getwd()
+	fileToStat := "go.mod"
+	if os.Getenv("ENV") == "prod" {
+		fileToStat = "main"
+	}
+
+	_, err = os.Stat(filepath.Join(ex, fileToStat))
+
+	if err != nil {
+		for i := 0; i < 5; i++ {
+			ex = filepath.Join(ex, "../")
+			_, err = os.Stat(filepath.Join(ex, fileToStat))
+
+			if err == nil {
+				break
+			}
+		}
+		if err != nil {
+			log.Println("No env file provided, using only env variables")
+		}
+	}
 	return
 }

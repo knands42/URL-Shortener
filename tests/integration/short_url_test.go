@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"knands42/url-shortener/internal/database"
 	"knands42/url-shortener/internal/database/repo"
 	handler "knands42/url-shortener/internal/handlers"
@@ -34,6 +33,26 @@ var repository = repo.New(dbConnection)
 var handlers = handler.NewHandler(repository)
 var testServer = server.NewServer(r, handlers)
 
+func Test_delete_entry_by_short_url(t *testing.T) {
+	ts := httptest.NewServer(testServer.Router)
+
+	// Send a DELETE request to the /api/v1/shorten endpoint
+	req, err := http.NewRequest("DELETE", ts.URL+"/api/v1/url?url=https://google.com&type=original_url", nil)
+	if err != nil {
+		t.Fatalf("Failed to send DELETE request: %v", err)
+	}
+
+	// Check the response status code
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send DELETE request: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
+	}
+}
+
 func Test_create_short_url(t *testing.T) {
 	ts := httptest.NewServer(testServer.Router)
 
@@ -51,21 +70,106 @@ func Test_create_short_url(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	b, _ := ioutil.ReadAll(resp.Body)
-	_ = string(b)
-
 	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusCreated {
 		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 	}
 
 	// Check the response body
-	var responseBody map[string]string
+	var responseBody map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
 		t.Fatalf("Failed to decode response body: %v", err)
 	}
 
-	if data, _ := responseBody["short_url"]; data != "https://me.li/BLvbbc" {
+	if data := responseBody["short_url"]; data != "https://me.li/BLvbbc" {
 		t.Errorf("Expected response body to contain 'short_url' key")
+	}
+}
+
+func Test_get_entry_by_short_url(t *testing.T) {
+	ts := httptest.NewServer(testServer.Router)
+
+	// Send a DELETE request to the /api/v1/shorten endpoint
+	req, err := http.NewRequest("GET", ts.URL+"/api/v1/url?url=https://me.li/BLvbbc&type=short_url", nil)
+	if err != nil {
+		t.Fatalf("Failed to send GET request: %v", err)
+	}
+
+	// Check the response status code
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send GET request: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
+	}
+
+	// Check the response body
+	var responseBody map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
+		t.Fatalf("Failed to decode response body: %v", err)
+	}
+
+	if data := responseBody["original_url"]; data != "https://google.com" {
+		t.Errorf("Expected response body to contain 'original_url' key")
+	}
+
+	if data := responseBody["short_url"]; data != "https://me.li/BLvbbc" {
+		t.Errorf("Expected response body to contain 'short_url' key")
+	}
+}
+
+func Test_get_entry_by_original_url(t *testing.T) {
+	ts := httptest.NewServer(testServer.Router)
+
+	// Send a DELETE request to the /api/v1/shorten endpoint
+	req, err := http.NewRequest("GET", ts.URL+"/api/v1/url?url=https://google.com&type=original_url", nil)
+	if err != nil {
+		t.Fatalf("Failed to send GET request: %v", err)
+	}
+
+	// Check the response status code
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send GET request: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
+	}
+
+	// Check the response body
+	var responseBody map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
+		t.Fatalf("Failed to decode response body: %v", err)
+	}
+
+	if data := responseBody["original_url"]; data != "https://google.com" {
+		t.Errorf("Expected response body to contain 'original_url' key")
+	}
+
+	if data := responseBody["short_url"]; data != "https://me.li/BLvbbc" {
+		t.Errorf("Expected response body to contain 'short_url' key")
+	}
+}
+
+func Test_delete_entry_by_original_url(t *testing.T) {
+	ts := httptest.NewServer(testServer.Router)
+
+	// Send a DELETE request to the /api/v1/shorten endpoint
+	req, err := http.NewRequest("DELETE", ts.URL+"/api/v1/url?url=https://me.li/BLvbbc&type=short_url", nil)
+	if err != nil {
+		t.Fatalf("Failed to send DELETE request: %v", err)
+	}
+
+	// Check the response status code
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("Failed to send DELETE request: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 	}
 }

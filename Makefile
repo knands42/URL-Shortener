@@ -39,7 +39,7 @@ build-and-run:
 	./url_shortener
 
 integration-tests:
-	go test -v -cover tests
+	go test -v ./tests/integration -cover
 
 performance-tests:
 	go test -bench=. -benchmem tests
