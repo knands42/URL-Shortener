@@ -16,19 +16,19 @@ type Config struct {
 	TimeZone   string `mapstructure:"DB_TIMEZONE"`
 }
 
-func NewConfig() *Config {
+func NewConfig(env string) *Config {
 	config := &Config{}
 
-	config.loadConfig()
+	config.loadConfig(env)
 
 	return config
 }
 
-func (c *Config) loadConfig() (err error) {
+func (c *Config) loadConfig(env string) (err error) {
 	path, _ := os.Getwd()
 
 	viper.AddConfigPath(path)
-	viper.SetConfigName("app")
+	viper.SetConfigName("app-" + env)
 	viper.SetConfigType("env")
 
 	viper.AutomaticEnv()

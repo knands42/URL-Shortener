@@ -7,12 +7,12 @@ import (
 )
 
 type Server struct {
-	router   *chi.Mux
+	Router   *chi.Mux
 	handlers *handler.Handler
 }
 
 func NewServer(router *chi.Mux, handlers *handler.Handler) *Server {
-	server := &Server{router: router, handlers: handlers}
+	server := &Server{Router: router, handlers: handlers}
 
 	server.DefaultMiddlewares()
 	server.DefaultRoutes()

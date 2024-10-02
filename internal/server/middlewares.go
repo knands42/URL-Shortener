@@ -9,10 +9,10 @@ import (
 )
 
 func (s *Server) DefaultMiddlewares() {
-	s.router.Use(middleware.RequestID)
-	s.router.Use(middleware.Logger)
-	s.router.Use(middleware.Recoverer)
-	s.router.Use(defaultErrorHandler)
+	s.Router.Use(middleware.RequestID)
+	s.Router.Use(middleware.Logger)
+	s.Router.Use(middleware.Recoverer)
+	s.Router.Use(defaultErrorHandler)
 }
 
 func defaultErrorHandler(next http.Handler) http.Handler {

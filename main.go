@@ -40,7 +40,7 @@ func main() {
 	r := chi.NewRouter()
 
 	// Load the environment variables
-	config := utils.NewConfig()
+	config := utils.NewConfig("dev")
 
 	// Initialize the database
 	dbConfig := database.NewDBConfig(

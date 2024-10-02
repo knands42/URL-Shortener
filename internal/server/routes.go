@@ -8,15 +8,15 @@ import (
 )
 
 func (s *Server) DefaultRoutes() {
-	s.router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+	s.Router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("ok"))
 	})
-	s.router.Get("/swagger/*", httpSwagger.WrapHandler)
+	s.Router.Get("/swagger/*", httpSwagger.WrapHandler)
 }
 
 func (s *Server) CustomRoutes() http.Handler {
-	s.router.Mount("/api/v1", s.prefixedAPIs())
-	return s.router
+	s.Router.Mount("/api/v1", s.prefixedAPIs())
+	return s.Router
 }
 
 func (s *Server) prefixedAPIs() chi.Router {
