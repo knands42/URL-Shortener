@@ -2,11 +2,11 @@ package handler
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"knands42/url-shortener/internal/database/repo"
 	"knands42/url-shortener/internal/utils"
 	"log"
-	"math/big"
 	"net/http"
 
 	_ "knands42/url-shortener/docs"
@@ -55,13 +55,13 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	input := req.Input
 	length := 6
 
-	resp := generateFinalURL(input, length)
+	base62Hash := generateHash(input, length)
 
-	_, err = h.repo.CreateShortUrl(
+	_, err = h.repo.CreateHash(
 		r.Context(),
-		repo.CreateShortUrlParams{
+		repo.CreateHashParams{
 			OriginalUrl: input,
-			ShortUrl:    resp.ShortURL,
+			Hash:        base62Hash[:length],
 		},
 	)
 	if err != nil {
@@ -75,42 +75,19 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	generateShortURLResponse := GenerateShortURLResponse{
+		ShortURL: "https://me.li/" + base62Hash[:length],
+	}
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(generateShortURLResponse)
 }
 
-func generateFinalURL(input string, length int) GenerateShortURLResponse {
+func generateHash(input string, length int) string {
 
 	// Hash the input using SHA256 to avoid collisions
 	hash := sha256.Sum256([]byte(input))
 	// Encode the hash to base62 instead of using raw hexadecimals limited to 16 characters
-	base62Hash := base62Encode(hash[:])
+	base62Hash := base64.StdEncoding.EncodeToString(hash[:])
 
-	return GenerateShortURLResponse{
-		ShortURL: "https://me.li/" + base62Hash[:length],
-	}
-}
-
-const base62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-
-/*
-Encodes a byte slice to a base62 string composed
-of the following characters: [A-Za-z0-9].
-*/
-func base62Encode(input []byte) string {
-	bigInt := new(big.Int).SetBytes(input)
-	result := make([]byte, 0)
-	base := big.NewInt(62)
-
-	for bigInt.Cmp(big.NewInt(0)) > 0 {
-		remainder := new(big.Int)
-		bigInt.DivMod(bigInt, base, remainder)
-		result = append(result, base62Chars[remainder.Int64()])
-	}
-
-	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
-		result[i], result[j] = result[j], result[i]
-	}
-
-	return string(result)
+	return base62Hash[:length]
 }

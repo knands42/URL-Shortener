@@ -36,7 +36,8 @@ func (h *Handler) GetUrl(w http.ResponseWriter, r *http.Request) {
 	var resultDB repo.ShortenedUrl
 
 	if urlTypeQuertParam == URL_TYPE_SHORT {
-		resultDB, err = h.repo.GetByShortUrl(r.Context(), urlQueryParam)
+		hash := h.extractHashFromUrl(urlQueryParam)
+		resultDB, err = h.repo.GetByHash(r.Context(), hash)
 	} else {
 		resultDB, err = h.repo.GetByOriginalUrl(r.Context(), urlQueryParam)
 	}
@@ -54,7 +55,7 @@ func (h *Handler) GetUrl(w http.ResponseWriter, r *http.Request) {
 
 	resp := GetURLResponse{
 		OriginalUrl: resultDB.OriginalUrl,
-		ShortUrl:    resultDB.ShortUrl,
+		ShortUrl:    "https://me.li/" + resultDB.Hash,
 	}
 
 	w.WriteHeader(http.StatusOK)

@@ -11,7 +11,7 @@ import (
 type ShortenedUrl struct {
 	ID          pgtype.UUID        `json:"id"`
 	OriginalUrl string             `json:"original_url"`
-	ShortUrl    string             `json:"short_url"`
+	Hash        string             `json:"hash"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }

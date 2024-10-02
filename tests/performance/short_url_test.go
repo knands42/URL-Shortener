@@ -29,6 +29,8 @@ var dbConfig = database.NewDBConfig(
 	config.DBPort,
 	config.SSLMode,
 	config.TimeZone,
+	config.MinConns,
+	config.MaxConns,
 )
 var dbConnection, _ = dbConfig.Connect(ctx)
 var repository = repo.New(dbConnection)
@@ -37,13 +39,14 @@ var testServer = server.NewServer(r, handlers)
 
 func Benchmark_short_url(b *testing.B) {
 	ts := httptest.NewServer(testServer.Router)
-	n := 1000
+	creationAmount := 1000
+	getAmount := 10000
 	var url string
 	var urls []string
 
 	b.Run("CreateEntry", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			for j := 0; j < n; j++ {
+			for j := 0; j < creationAmount; j++ {
 				url = generateEntry(b, ts)
 				urls = append(urls, url)
 			}
@@ -52,7 +55,7 @@ func Benchmark_short_url(b *testing.B) {
 
 	b.Run("GetEntry", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			for j := 0; j < n; j++ {
+			for j := 0; j < getAmount; j++ {
 				randomUrl := urls[rand.Intn(len(urls))]
 				getEntry(b, ts, randomUrl)
 			}
@@ -82,8 +85,8 @@ func generateEntry(b *testing.B, ts *httptest.Server) string {
 
 func getEntry(b *testing.B, ts *httptest.Server, url string) {
 	// Send a POST request to the /api/v1/shorten endpoint
-	req, err := http.NewRequest("GET", ts.URL+"/api/v1/url?url="+url+"&type=original_url", nil)
-	_, err = http.DefaultClient.Do(req)
+	req, _ := http.NewRequest("GET", ts.URL+"/api/v1/url?url="+url+"&type=original_url", nil)
+	_, err := http.DefaultClient.Do(req)
 	if err != nil {
 		b.Fatalf("Failed to send POST request: %v", err)
 	}

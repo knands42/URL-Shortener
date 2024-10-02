@@ -9,31 +9,40 @@ import (
 	"context"
 )
 
-const createShortUrl = `-- name: CreateShortUrl :one
+const createHash = `-- name: CreateHash :one
 INSERT INTO shortened_urls (
   original_url,
-  short_url
+  hash
 ) VALUES (
   $1, $2
-) RETURNING id, original_url, short_url, created_at, updated_at
+) RETURNING id, original_url, hash, created_at, updated_at
 `
 
-type CreateShortUrlParams struct {
+type CreateHashParams struct {
 	OriginalUrl string `json:"original_url"`
-	ShortUrl    string `json:"short_url"`
+	Hash        string `json:"hash"`
 }
 
-func (q *Queries) CreateShortUrl(ctx context.Context, arg CreateShortUrlParams) (ShortenedUrl, error) {
-	row := q.db.QueryRow(ctx, createShortUrl, arg.OriginalUrl, arg.ShortUrl)
+func (q *Queries) CreateHash(ctx context.Context, arg CreateHashParams) (ShortenedUrl, error) {
+	row := q.db.QueryRow(ctx, createHash, arg.OriginalUrl, arg.Hash)
 	var i ShortenedUrl
 	err := row.Scan(
 		&i.ID,
 		&i.OriginalUrl,
-		&i.ShortUrl,
+		&i.Hash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const deleteByHash = `-- name: DeleteByHash :exec
+DELETE FROM shortened_urls WHERE hash = $1
+`
+
+func (q *Queries) DeleteByHash(ctx context.Context, hash string) error {
+	_, err := q.db.Exec(ctx, deleteByHash, hash)
+	return err
 }
 
 const deleteByOriginalUrl = `-- name: DeleteByOriginalUrl :exec
@@ -45,17 +54,25 @@ func (q *Queries) DeleteByOriginalUrl(ctx context.Context, originalUrl string) e
 	return err
 }
 
-const deleteByShortUrl = `-- name: DeleteByShortUrl :exec
-DELETE FROM shortened_urls WHERE short_url = $1
+const getByHash = `-- name: GetByHash :one
+SELECT id, original_url, hash, created_at, updated_at FROM shortened_urls WHERE hash = $1
 `
 
-func (q *Queries) DeleteByShortUrl(ctx context.Context, shortUrl string) error {
-	_, err := q.db.Exec(ctx, deleteByShortUrl, shortUrl)
-	return err
+func (q *Queries) GetByHash(ctx context.Context, hash string) (ShortenedUrl, error) {
+	row := q.db.QueryRow(ctx, getByHash, hash)
+	var i ShortenedUrl
+	err := row.Scan(
+		&i.ID,
+		&i.OriginalUrl,
+		&i.Hash,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getByOriginalUrl = `-- name: GetByOriginalUrl :one
-SELECT id, original_url, short_url, created_at, updated_at FROM shortened_urls WHERE original_url = $1
+SELECT id, original_url, hash, created_at, updated_at FROM shortened_urls WHERE original_url = $1
 `
 
 func (q *Queries) GetByOriginalUrl(ctx context.Context, originalUrl string) (ShortenedUrl, error) {
@@ -64,24 +81,7 @@ func (q *Queries) GetByOriginalUrl(ctx context.Context, originalUrl string) (Sho
 	err := row.Scan(
 		&i.ID,
 		&i.OriginalUrl,
-		&i.ShortUrl,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
-}
-
-const getByShortUrl = `-- name: GetByShortUrl :one
-SELECT id, original_url, short_url, created_at, updated_at FROM shortened_urls WHERE short_url = $1
-`
-
-func (q *Queries) GetByShortUrl(ctx context.Context, shortUrl string) (ShortenedUrl, error) {
-	row := q.db.QueryRow(ctx, getByShortUrl, shortUrl)
-	var i ShortenedUrl
-	err := row.Scan(
-		&i.ID,
-		&i.OriginalUrl,
-		&i.ShortUrl,
+		&i.Hash,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

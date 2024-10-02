@@ -51,6 +51,8 @@ func main() {
 		config.DBPort,
 		config.SSLMode,
 		config.TimeZone,
+		config.MinConns,
+		config.MaxConns,
 	)
 	dbConnection, err := dbConfig.Connect(ctx)
 	if err != nil {

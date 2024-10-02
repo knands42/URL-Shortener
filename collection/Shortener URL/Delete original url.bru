@@ -5,11 +5,12 @@ meta {
 }
 
 delete {
-  url: http://localhost:3333/api/v1/url?url=https://google.com
+  url: http://localhost:3333/api/v1/url?url=https://google.com&type=original_url
   body: none
   auth: none
 }
 
 query {
   url: https://google.com
+  type: original_url
 }

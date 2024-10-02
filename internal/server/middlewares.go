@@ -17,6 +17,7 @@ func (s *Server) DefaultMiddlewares() {
 	s.Router.Use(corsMiddleware())
 }
 
+// Capture any unhandled errors and return a 500 status code
 func defaultErrorHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -33,6 +34,7 @@ func defaultErrorHandler(next http.Handler) http.Handler {
 	})
 }
 
+// This will allow every origin to make requests to the server, including the swagger UI
 func corsMiddleware() func(next http.Handler) http.Handler {
 	return cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"https://*", "http://*"},

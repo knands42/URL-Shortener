@@ -16,6 +16,8 @@ type Config struct {
 	DBPort     int    `mapstructure:"DB_PORT"`
 	SSLMode    string `mapstructure:"DB_SSL_MODE"`
 	TimeZone   string `mapstructure:"DB_TIMEZONE"`
+	MinConns   int32  `mapstructure:"DB_MIN_CONNS"`
+	MaxConns   int32  `mapstructure:"DB_MAX_CONNS"`
 }
 
 func NewConfig(env string) *Config {

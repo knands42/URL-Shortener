@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -15,6 +16,8 @@ type DBConfig struct {
 	Port     int
 	SSLMode  string
 	TimeZone string
+	minConns int32
+	maxConns int32
 }
 
 func NewDBConfig(
@@ -25,6 +28,8 @@ func NewDBConfig(
 	port int,
 	sslMode string,
 	timeZone string,
+	minConns int32,
+	maxConns int32,
 ) *DBConfig {
 	return &DBConfig{
 		Host:     host,
@@ -34,6 +39,8 @@ func NewDBConfig(
 		Port:     port,
 		SSLMode:  sslMode,
 		TimeZone: timeZone,
+		minConns: minConns,
+		maxConns: maxConns,
 	}
 }
 
@@ -42,7 +49,16 @@ func (c *DBConfig) DSN() string {
 }
 
 func (c *DBConfig) Connect(ctx context.Context) (*pgxpool.Pool, error) {
-	conn, err := pgxpool.New(ctx, c.DSN())
+	dbConfig, err := pgxpool.ParseConfig(c.DSN())
+	if err != nil {
+		return nil, err
+	}
+
+	dbConfig.MaxConns = c.maxConns
+	dbConfig.MinConns = c.minConns
+	dbConfig.MaxConnIdleTime = time.Minute * 10
+
+	conn, err := pgxpool.NewWithConfig(ctx, dbConfig)
 	if err != nil {
 		return nil, err
 	}

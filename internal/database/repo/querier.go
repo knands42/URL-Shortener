@@ -9,11 +9,11 @@ import (
 )
 
 type Querier interface {
-	CreateShortUrl(ctx context.Context, arg CreateShortUrlParams) (ShortenedUrl, error)
+	CreateHash(ctx context.Context, arg CreateHashParams) (ShortenedUrl, error)
+	DeleteByHash(ctx context.Context, hash string) error
 	DeleteByOriginalUrl(ctx context.Context, originalUrl string) error
-	DeleteByShortUrl(ctx context.Context, shortUrl string) error
+	GetByHash(ctx context.Context, hash string) (ShortenedUrl, error)
 	GetByOriginalUrl(ctx context.Context, originalUrl string) (ShortenedUrl, error)
-	GetByShortUrl(ctx context.Context, shortUrl string) (ShortenedUrl, error)
 }
 
 var _ Querier = (*Queries)(nil)
