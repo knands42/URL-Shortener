@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"knands42/url-shortener/internal/utils"
 	"log"
 	"net/http"
 	"strings"
@@ -21,11 +23,16 @@ func (h *Handler) DeleteURL(w http.ResponseWriter, r *http.Request) {
 		err = h.repo.DeleteByOriginalUrl(r.Context(), urlQueryParam)
 	}
 
-	// TODO: Validate error types of sqlc
 	if err != nil {
-		log.Printf("Failed to get URL: %v", err)
-		http.Error(w, "Failed to get URL", http.StatusInternalServerError)
+		errorResponse := utils.ErrorResponse{
+			Status:  http.StatusNotFound,
+			Message: "URL not found",
+		}
+		log.Printf("URL not found: %v", err.Error())
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(errorResponse)
 		return
+
 	}
 
 	w.WriteHeader(http.StatusNoContent)

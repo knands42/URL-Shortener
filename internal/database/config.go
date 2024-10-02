@@ -17,15 +17,23 @@ type DBConfig struct {
 	TimeZone string
 }
 
-func NewDBConfig() *DBConfig {
+func NewDBConfig(
+	host string,
+	user string,
+	password string,
+	dbName string,
+	port int,
+	sslMode string,
+	timeZone string,
+) *DBConfig {
 	return &DBConfig{
-		Host:     "localhost",
-		User:     "postgres",
-		Password: "postgres",
-		DBName:   "url_shortener",
-		Port:     5433,
-		SSLMode:  "disable",
-		TimeZone: "America/Sao_Paulo",
+		Host:     host,
+		User:     user,
+		Password: password,
+		DBName:   dbName,
+		Port:     port,
+		SSLMode:  sslMode,
+		TimeZone: timeZone,
 	}
 }
 

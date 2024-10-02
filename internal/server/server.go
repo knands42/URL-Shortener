@@ -18,7 +18,5 @@ func NewServer(router *chi.Mux, handlers *handler.Handler) *Server {
 	server.DefaultRoutes()
 	server.CustomRoutes()
 
-	// TODO: Add cors
-	// TODO: Add default headers
 	return server
 }

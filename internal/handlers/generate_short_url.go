@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"knands42/url-shortener/internal/database/repo"
+	"knands42/url-shortener/internal/utils"
 	"log"
 	"math/big"
 	"net/http"
@@ -35,7 +36,6 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
-		// TODO: create a custom error response
 	}
 
 	input := req.Input
@@ -51,8 +51,13 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 		},
 	)
 	if err != nil {
-		log.Printf("Failed to create short URL: %v", err)
-		http.Error(w, "Failed to create short URL", http.StatusInternalServerError)
+		errorResponse := utils.ErrorResponse{
+			Status:  http.StatusConflict,
+			Message: "URL already exists",
+		}
+		log.Printf("URL already exists: %v", err.Error())
+		w.WriteHeader(http.StatusConflict)
+		json.NewEncoder(w).Encode(errorResponse)
 		return
 	}
 

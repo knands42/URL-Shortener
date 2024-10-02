@@ -1,3 +1,5 @@
+include app.env
+
 DB_URL ?= postgres://postgres:postgres@localhost:5433/url_shortener?sslmode=disable
 
 ############################### Requirements ###############################

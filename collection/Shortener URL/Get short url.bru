@@ -1,16 +1,15 @@
 meta {
   name: Get short url
   type: http
-  seq: 2
+  seq: 3
 }
 
 get {
-  url: http://localhost:3333/api/v1/url?url=https://google.com&url_type=original_url
+  url: http://localhost:3333/api/v1/shorten?url=https://google.com
   body: none
   auth: none
 }
 
 query {
   url: https://google.com
-  url_type: original_url
 }

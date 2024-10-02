@@ -7,6 +7,7 @@ import (
 	"knands42/url-shortener/internal/database/repo"
 	handler "knands42/url-shortener/internal/handlers"
 	"knands42/url-shortener/internal/server"
+	"knands42/url-shortener/internal/utils"
 	"log"
 	"net/http"
 	"os"
@@ -38,10 +39,19 @@ func main() {
 	ctx := context.Background()
 	r := chi.NewRouter()
 
-	// TODO: Load env environments
+	// Load the environment variables
+	config := utils.NewConfig()
 
 	// Initialize the database
-	dbConfig := database.NewDBConfig()
+	dbConfig := database.NewDBConfig(
+		config.DBHost,
+		config.DBUser,
+		config.DBPassword,
+		config.DBName,
+		config.DBPort,
+		config.SSLMode,
+		config.TimeZone,
+	)
 	dbConnection, err := dbConfig.Connect(ctx)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
@@ -50,13 +60,9 @@ func main() {
 
 	defer dbConnection.Close()
 
-	// Intialized the repository
+	// Intialized the components
 	repo := repo.New(dbConnection)
-
-	// Initialize the handlers
 	handlers := handler.NewHandler(repo)
-
-	// Initialize the server
 	server.NewServer(r, handlers)
 
 	gracefulShutdown(dbConnection)
