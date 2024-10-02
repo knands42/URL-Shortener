@@ -6,6 +6,7 @@ DB_URL ?= postgres://postgres:postgres@localhost:5433/url_shortener?sslmode=disa
 setup:
 	go install github.com/swaggo/swag/cmd/swag@latest
 	go install github.com/golang-migrate/migrate/v4
+	pip install bzt
 
 ############################### Migrate ###############################
 create-migration:
@@ -30,6 +31,12 @@ gen-docs:
 run-dev:
 	go run main.go
 
-run-prod:
+build-and-run:
 	go build -o url_shortener main.go
 	./url_shortener
+
+integration-tests:
+	go test -v ./tests
+
+performance-tests:
+	bzt
