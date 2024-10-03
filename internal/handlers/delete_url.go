@@ -18,6 +18,9 @@ import (
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /url [delete]
 func (h *Handler) DeleteURL(w http.ResponseWriter, r *http.Request) {
+	ctx, span := h.tracing.Start(r.Context(), "GenerateShortURL")
+	defer span.End()
+
 	urlQueryParam := r.URL.Query().Get("url")
 	urlTypeQuertParam := r.URL.Query().Get("type")
 	if urlQueryParam == "" {
@@ -28,9 +31,9 @@ func (h *Handler) DeleteURL(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if urlTypeQuertParam == URL_TYPE_SHORT {
 		hash := h.extractHashFromUrl(urlQueryParam)
-		err = h.repo.DeleteByHash(r.Context(), hash)
+		err = h.repo.DeleteByHash(ctx, hash)
 	} else {
-		err = h.repo.DeleteByOriginalUrl(r.Context(), urlQueryParam)
+		err = h.repo.DeleteByOriginalUrl(ctx, urlQueryParam)
 	}
 
 	if err != nil {

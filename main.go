@@ -6,6 +6,7 @@ import (
 	"knands42/url-shortener/internal/database"
 	"knands42/url-shortener/internal/database/repo"
 	handler "knands42/url-shortener/internal/handlers"
+	"knands42/url-shortener/internal/otel"
 	"knands42/url-shortener/internal/server"
 	"knands42/url-shortener/internal/utils"
 	"log"
@@ -42,6 +43,15 @@ func main() {
 	// Load the environment variables
 	config := utils.NewConfig("dev")
 
+	// Intinalize the OpenTelemetry
+	jaeger, err := otel.NewJaegerExporter(ctx, config.JaegerExporterEndpoint)
+	defer func() { _ = jaeger.Shutdown(ctx) }()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to initialize Jaeger: %v\n", err)
+		os.Exit(1)
+	}
+	tracing := otel.NewOpenTelemetry(jaeger).GetTracer()
+
 	// Initialize the database
 	dbConfig := database.NewDBConfig(
 		config.DBHost,
@@ -64,8 +74,8 @@ func main() {
 
 	// Intialized the components
 	repo := repo.New(dbConnection)
-	handlers := handler.NewHandler(repo)
-	server.NewServer(r, handlers)
+	handlers := handler.NewHandler(repo, tracing)
+	server.NewServer(r, handlers, tracing)
 
 	gracefulShutdown(dbConnection)
 

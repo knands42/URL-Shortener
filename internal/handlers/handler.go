@@ -1,9 +1,14 @@
 package handler
 
-import "knands42/url-shortener/internal/database/repo"
+import (
+	"knands42/url-shortener/internal/database/repo"
+
+	"go.opentelemetry.io/otel/trace"
+)
 
 type Handler struct {
-	repo *repo.Queries
+	repo    *repo.Queries
+	tracing trace.Tracer
 }
 
 const (
@@ -11,9 +16,10 @@ const (
 	URL_TYPE_ORIGINAL = "original_url"
 )
 
-func NewHandler(repo *repo.Queries) *Handler {
+func NewHandler(repo *repo.Queries, tracing trace.Tracer) *Handler {
 	return &Handler{
-		repo: repo,
+		repo:    repo,
+		tracing: tracing,
 	}
 }
 

@@ -25,6 +25,9 @@ type GetURLResponse struct {
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /url [get]
 func (h *Handler) GetUrl(w http.ResponseWriter, r *http.Request) {
+	ctx, span := h.tracing.Start(r.Context(), "GenerateShortURL")
+	defer span.End()
+
 	urlQueryParam := r.URL.Query().Get("url")
 	urlTypeQuertParam := r.URL.Query().Get("type")
 	if urlQueryParam == "" {
@@ -37,9 +40,9 @@ func (h *Handler) GetUrl(w http.ResponseWriter, r *http.Request) {
 
 	if urlTypeQuertParam == URL_TYPE_SHORT {
 		hash := h.extractHashFromUrl(urlQueryParam)
-		resultDB, err = h.repo.GetByHash(r.Context(), hash)
+		resultDB, err = h.repo.GetByHash(ctx, hash)
 	} else {
-		resultDB, err = h.repo.GetByOriginalUrl(r.Context(), urlQueryParam)
+		resultDB, err = h.repo.GetByOriginalUrl(ctx, urlQueryParam)
 	}
 
 	if err != nil {

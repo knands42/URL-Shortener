@@ -9,15 +9,16 @@ import (
 )
 
 type Config struct {
-	DBHost     string `mapstructure:"DB_HOST"`
-	DBUser     string `mapstructure:"DB_USER"`
-	DBPassword string `mapstructure:"DB_PASSWORD"`
-	DBName     string `mapstructure:"DB_NAME"`
-	DBPort     int    `mapstructure:"DB_PORT"`
-	SSLMode    string `mapstructure:"DB_SSL_MODE"`
-	TimeZone   string `mapstructure:"DB_TIMEZONE"`
-	MinConns   int32  `mapstructure:"DB_MIN_CONNS"`
-	MaxConns   int32  `mapstructure:"DB_MAX_CONNS"`
+	DBHost                 string `mapstructure:"DB_HOST"`
+	DBUser                 string `mapstructure:"DB_USER"`
+	DBPassword             string `mapstructure:"DB_PASSWORD"`
+	DBName                 string `mapstructure:"DB_NAME"`
+	DBPort                 int    `mapstructure:"DB_PORT"`
+	SSLMode                string `mapstructure:"DB_SSL_MODE"`
+	TimeZone               string `mapstructure:"DB_TIMEZONE"`
+	MinConns               int32  `mapstructure:"DB_MIN_CONNS"`
+	MaxConns               int32  `mapstructure:"DB_MAX_CONNS"`
+	JaegerExporterEndpoint string `mapstructure:"JAEGER_EXPORTER_ENDPOINT"`
 }
 
 func NewConfig(env string) *Config {

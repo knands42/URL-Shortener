@@ -33,6 +33,9 @@ type GenerateShortURLResponse struct {
 // @Failure 500 {object} utils.ErrorResponse
 // @Router /shorten [post]
 func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
+	ctx, span := h.tracing.Start(r.Context(), "GenerateShortURL")
+	defer span.End()
+
 	var req GenerateShortURLRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -58,7 +61,7 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	base62Hash := generateHash(input, length)
 
 	_, err = h.repo.CreateHash(
-		r.Context(),
+		ctx,
 		repo.CreateHashParams{
 			OriginalUrl: input,
 			Hash:        base62Hash[:length],

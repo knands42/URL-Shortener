@@ -7,9 +7,11 @@ import (
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func (s *Server) DefaultMiddlewares() {
+	s.Router.Use(tracingMiddleware(s.tracing))
 	s.Router.Use(middleware.RequestID)
 	s.Router.Use(middleware.Logger)
 	s.Router.Use(middleware.Recoverer)
@@ -44,4 +46,17 @@ func corsMiddleware() func(next http.Handler) http.Handler {
 		AllowCredentials: false,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	})
+}
+
+func tracingMiddleware(tracing trace.Tracer) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			ctx, span := tracing.Start(r.Context(), "TracingMiddleware")
+			defer span.End()
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+
+		return http.HandlerFunc(fn)
+	}
 }
