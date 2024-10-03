@@ -32,8 +32,10 @@ func (h *Handler) DeleteURL(w http.ResponseWriter, r *http.Request) {
 	if urlTypeQuertParam == URL_TYPE_SHORT {
 		hash := h.extractHashFromUrl(urlQueryParam)
 		err = h.repo.DeleteByHash(ctx, hash)
+		h.deleteFromCache(ctx, hash)
 	} else {
 		err = h.repo.DeleteByOriginalUrl(ctx, urlQueryParam)
+		h.deleteFromCache(ctx, urlQueryParam)
 	}
 
 	if err != nil {

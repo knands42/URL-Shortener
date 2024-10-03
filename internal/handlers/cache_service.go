@@ -2,14 +2,6 @@ package handler
 
 import "context"
 
-func (h *Handler) getShortUrlCacheKey(hash string) string {
-	return URL_TYPE_SHORT + "-" + hash
-}
-
-func (h *Handler) getOriginalUrlCacheKey(original_url string) string {
-	return URL_TYPE_ORIGINAL + "-" + original_url
-}
-
 func (h *Handler) checkCacheFirst(ctx context.Context, key string) (string, error) {
 	ctx, span := h.tracing.Start(ctx, "GetUrlFromCache")
 	defer span.End()
@@ -34,13 +26,25 @@ func (h *Handler) saveIntoCache(ctx context.Context, key string, value string) e
 	return nil
 }
 
-func (h *Handler) getCacheKeyAndHash(ctx context.Context, urlTypeQueryParam, urlQueryParam string) (string, string) {
-	_, span := h.tracing.Start(ctx, "GetCacheKeyAndHash")
+func (h *Handler) writeThroughCache(
+	ctx context.Context,
+	hash string,
+	url string,
+) {
+	cacheShortKey := hash
+	cacheOriginalKey := url
+	h.saveIntoCache(ctx, cacheShortKey, url)
+	h.saveIntoCache(ctx, cacheOriginalKey, hash)
+}
+
+func (h *Handler) deleteFromCache(ctx context.Context, cacheKey string) error {
+	ctx, span := h.tracing.Start(ctx, "DeleteFromCache")
 	defer span.End()
 
-	if urlTypeQueryParam == URL_TYPE_SHORT {
-		hash := h.extractHashFromUrl(urlQueryParam)
-		return h.getShortUrlCacheKey(hash), hash
+	err := h.cache.Del(ctx, cacheKey).Err()
+	if err != nil {
+		return err
 	}
-	return h.getOriginalUrlCacheKey(urlQueryParam), ""
+
+	return nil
 }

@@ -29,31 +29,31 @@ func (h *Handler) GetUrl(w http.ResponseWriter, r *http.Request) {
 	ctx, span := h.tracing.Start(r.Context(), "GetUrl")
 	defer span.End()
 
-	urlQueryParam := r.URL.Query().Get("url")
 	urlTypeQueryParam := r.URL.Query().Get("type")
+	urlQueryParam := r.URL.Query().Get("url")
 	if urlQueryParam == "" {
 		http.Error(w, "URL is required", http.StatusBadRequest)
 		return
 	}
 
+	queryParamToSearch := h.extractHashFromUrlIfThereIsAny(urlTypeQueryParam, urlQueryParam)
 	var err error
 	var resultDB repo.ShortenedUrl
-	var cacheHit string
-	var resp = GetURLResponse{}
+	var cacheValue string
+	var result = GetURLResponse{}
 
-	cacheKey, hash := h.getCacheKeyAndHash(ctx, urlTypeQueryParam, urlQueryParam)
-	cacheHit, err = h.checkCacheFirst(ctx, cacheKey)
+	cacheValue, err = h.checkCacheFirst(ctx, queryParamToSearch)
 	if err != nil {
-		log.Printf("Cache miss: %v", err.Error())
-		resultDB, err = h.getFromRepo(ctx, urlTypeQueryParam, hash, urlQueryParam)
+		log.Printf("Cache miss for %s: %v", queryParamToSearch, err.Error())
+		resultDB, err = h.getFromRepo(ctx, urlTypeQueryParam, queryParamToSearch)
 		if err != nil {
 			notFound(w, err)
 			return
 		}
-		h.saveIntoCache(ctx, cacheKey, h.getCacheValue(urlTypeQueryParam, resultDB))
-		h.populateResultFromDB(&resp, resultDB)
+		h.writeThroughCache(ctx, resultDB.Hash, resultDB.OriginalUrl)
+		populateResultFromDB(&result, resultDB)
 	} else {
-		h.populateResultFromCache(&resp, urlTypeQueryParam, cacheHit, urlQueryParam, hash)
+		populateResultFromCache(&result, urlTypeQueryParam, cacheValue, queryParamToSearch)
 	}
 
 	if err != nil {
@@ -68,7 +68,40 @@ func (h *Handler) GetUrl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(result)
+}
+
+func (h *Handler) extractHashFromUrlIfThereIsAny(urlTypeQueryParam string, urlParam string) string {
+	if urlTypeQueryParam == URL_TYPE_SHORT {
+		return h.extractHashFromUrl(urlParam)
+	} else {
+		return urlParam
+	}
+}
+
+func (h *Handler) getFromRepo(ctx context.Context, urlTypeQueryParam, valueParameter string) (repo.ShortenedUrl, error) {
+	ctx, span := h.tracing.Start(ctx, "GetUrlFromRepo")
+	defer span.End()
+
+	if urlTypeQueryParam == URL_TYPE_SHORT {
+		return h.repo.GetByHash(ctx, valueParameter)
+	}
+	return h.repo.GetByOriginalUrl(ctx, valueParameter)
+}
+
+func populateResultFromCache(resp *GetURLResponse, urlTypeQueryParam, cacheValue, cacheKey string) {
+	if urlTypeQueryParam == URL_TYPE_SHORT {
+		resp.OriginalUrl = cacheValue
+		resp.ShortUrl = "https://me.li/" + cacheKey
+	} else {
+		resp.OriginalUrl = cacheKey
+		resp.ShortUrl = "https://me.li/" + cacheValue
+	}
+}
+
+func populateResultFromDB(resp *GetURLResponse, resultDB repo.ShortenedUrl) {
+	resp.OriginalUrl = resultDB.OriginalUrl
+	resp.ShortUrl = "https://me.li/" + resultDB.Hash
 }
 
 func notFound(w http.ResponseWriter, err error) {
@@ -79,36 +112,4 @@ func notFound(w http.ResponseWriter, err error) {
 	log.Printf("URL not found: %v", err.Error())
 	w.WriteHeader(http.StatusNotFound)
 	json.NewEncoder(w).Encode(errorResponse)
-}
-
-func (h *Handler) getFromRepo(ctx context.Context, urlTypeQueryParam, hash, urlQueryParam string) (repo.ShortenedUrl, error) {
-	ctx, span := h.tracing.Start(ctx, "GetUrlFromRepo")
-	defer span.End()
-
-	if urlTypeQueryParam == URL_TYPE_SHORT {
-		return h.repo.GetByHash(ctx, hash)
-	}
-	return h.repo.GetByOriginalUrl(ctx, urlQueryParam)
-}
-
-func (h *Handler) getCacheValue(urlTypeQueryParam string, resultDB repo.ShortenedUrl) string {
-	if urlTypeQueryParam == URL_TYPE_SHORT {
-		return resultDB.OriginalUrl
-	}
-	return resultDB.Hash
-}
-
-func (h *Handler) populateResultFromCache(resp *GetURLResponse, urlTypeQueryParam, cacheHit, urlQueryParam, hash string) {
-	if urlTypeQueryParam == URL_TYPE_SHORT {
-		resp.OriginalUrl = cacheHit
-		resp.ShortUrl = "https://me.li/" + hash
-	} else {
-		resp.OriginalUrl = urlQueryParam
-		resp.ShortUrl = cacheHit
-	}
-}
-
-func (h *Handler) populateResultFromDB(resp *GetURLResponse, resultDB repo.ShortenedUrl) {
-	resp.OriginalUrl = resultDB.OriginalUrl
-	resp.ShortUrl = "https://me.li/" + resultDB.Hash
 }
