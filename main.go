@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"knands42/url-shortener/internal/cache"
 	"knands42/url-shortener/internal/database"
 	"knands42/url-shortener/internal/database/repo"
 	handler "knands42/url-shortener/internal/handlers"
@@ -20,6 +21,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	sdkTrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 //	@title			Url Shortener API
@@ -39,53 +42,27 @@ import (
 func main() {
 	ctx := context.Background()
 	r := chi.NewRouter()
-
-	// Load the environment variables
 	config := utils.NewConfig("dev")
-
-	// Intinalize the OpenTelemetry
-	jaeger, err := otel.NewJaegerExporter(ctx, config.JaegerExporterEndpoint)
+	jaeger, tracing := InitTracing(ctx, config)
 	defer func() { _ = jaeger.Shutdown(ctx) }()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to initialize Jaeger: %v\n", err)
-		os.Exit(1)
-	}
-	tracing := otel.NewOpenTelemetry(jaeger).GetTracer()
-
-	// Initialize the database
-	dbConfig := database.NewDBConfig(
-		config.DBHost,
-		config.DBUser,
-		config.DBPassword,
-		config.DBName,
-		config.DBPort,
-		config.SSLMode,
-		config.TimeZone,
-		config.MinConns,
-		config.MaxConns,
-	)
-	dbConnection, err := dbConfig.Connect(ctx)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
-	}
-
+	dbConnection := InitDatabase(ctx, config)
 	defer dbConnection.Close()
 
 	// Intialized the components
 	repo := repo.New(dbConnection)
-	handlers := handler.NewHandler(repo, tracing)
+	cache := cache.NewRedisClient(config)
+	handlers := handler.NewHandler(repo, cache, tracing)
 	server.NewServer(r, handlers, tracing)
 
-	gracefulShutdown(dbConnection)
+	gracefulShutdown(dbConnection, jaeger)
 
-	err = http.ListenAndServe(":3333", r)
+	err := http.ListenAndServe(":3333", r)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func gracefulShutdown(conn *pgxpool.Pool) {
+func gracefulShutdown(conn *pgxpool.Pool, jaeger sdkTrace.SpanExporter) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
 		syscall.SIGHUP,  // kill -SIGHUP XXXX
@@ -104,8 +81,40 @@ func gracefulShutdown(conn *pgxpool.Pool) {
 		select {
 		case <-time.After(30 * time.Second):
 			conn.Close()
+			jaeger.Shutdown(ctx)
 		case <-ctx.Done():
 			fmt.Println("Graceful shutdown")
 		}
 	}()
+}
+
+func InitTracing(ctx context.Context, config *utils.Config) (sdkTrace.SpanExporter, trace.Tracer) {
+	jaeger, err := otel.NewJaegerExporter(ctx, config.JaegerExporterEndpoint)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to initialize Jaeger: %v\n", err)
+		os.Exit(1)
+	}
+
+	return jaeger, otel.NewOpenTelemetry(jaeger).GetTracer()
+}
+
+func InitDatabase(ctx context.Context, config *utils.Config) *pgxpool.Pool {
+	dbConfig := database.NewDBConfig(
+		config.DBHost,
+		config.DBUser,
+		config.DBPassword,
+		config.DBName,
+		config.DBPort,
+		config.SSLMode,
+		config.TimeZone,
+		config.MinConns,
+		config.MaxConns,
+	)
+	dbConnection, err := dbConfig.Connect(ctx)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
+	}
+
+	return dbConnection
 }

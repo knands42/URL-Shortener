@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
@@ -15,11 +16,11 @@ import (
 )
 
 type GenerateShortURLRequest struct {
-	Input string `json:"input" valid:"required,url"`
+	Input string `json:"input" valid:"required,url" example:"https://www.google.com"`
 }
 
 type GenerateShortURLResponse struct {
-	ShortURL string `json:"short_url"`
+	ShortURL string `json:"short_url" example:"https://me.li/abc123"`
 }
 
 // @Summary Generate a short URL
@@ -78,8 +79,11 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	hash := base62Hash[:length]
+	writeThroughCache(ctx, h, hash, input, length)
+
 	generateShortURLResponse := GenerateShortURLResponse{
-		ShortURL: "https://me.li/" + base62Hash[:length],
+		ShortURL: "https://me.li/" + hash,
 	}
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(generateShortURLResponse)
@@ -93,4 +97,17 @@ func generateHash(input string, length int) string {
 	base62Hash := base64.StdEncoding.EncodeToString(hash[:])
 
 	return base62Hash[:length]
+}
+
+func writeThroughCache(
+	ctx context.Context,
+	h *Handler,
+	hash string,
+	input string,
+	length int,
+) {
+	cacheShortKey := h.getShortUrlCacheKey(hash)
+	cacheOriginalKey := h.getOriginalUrlCacheKey(input)
+	h.saveIntoCache(ctx, cacheShortKey, input)
+	h.saveIntoCache(ctx, cacheOriginalKey, hash)
 }

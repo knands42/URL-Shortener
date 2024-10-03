@@ -167,7 +167,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "input": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://www.google.com"
                 }
             }
         },
@@ -175,7 +176,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "short_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://me.li/abc123"
                 }
             }
         },

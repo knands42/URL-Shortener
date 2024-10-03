@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="PvlTUjPj0u4iXz4PkVxB" name="Page-1">
-        <mxGraphModel dx="921" dy="2016" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="635" dy="1749" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -90,8 +90,8 @@
                 <mxCell id="57" value="BI Squad (Dashboards, Data Analysis)" style="whiteSpace=wrap;html=1;" parent="1" vertex="1">
                     <mxGeometry x="240" y="960" width="140" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="59" value="Eviction Policy: LRU&lt;br&gt;Expiration Policy: TTL" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
-                    <mxGeometry x="820" y="620" width="140" height="40" as="geometry"/>
+                <mxCell id="59" value="Eviction Policy: LRU&lt;br&gt;Expiration Policy: None since there is no updates" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="750" y="630" width="280" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="60" value="&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;Auto managed DB on&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;any cloud provider,&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;preferably one that scale horizontaly&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
                     <mxGeometry x="775" y="510" width="240" height="40" as="geometry"/>
@@ -167,7 +167,7 @@
                 <mxCell id="99" value="" style="shape=actor;whiteSpace=wrap;html=1;fontSize=13;" parent="1" vertex="1">
                     <mxGeometry x="369.5" y="-230" width="40" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="101" value="&lt;b style=&quot;font-size: 14px;&quot;&gt;SOME METRICS&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+                <mxCell id="101" value="&lt;b style=&quot;font-size: 14px;&quot;&gt;SOME METRICS&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
                     <mxGeometry x="1045" y="200" width="130" height="30" as="geometry"/>
                 </mxCell>
             </root>

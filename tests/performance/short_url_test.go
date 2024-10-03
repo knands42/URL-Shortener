@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"knands42/url-shortener/internal/cache"
 	"knands42/url-shortener/internal/database"
 	"knands42/url-shortener/internal/database/repo"
 	handler "knands42/url-shortener/internal/handlers"
+	"knands42/url-shortener/internal/otel"
 	"knands42/url-shortener/internal/server"
 	"knands42/url-shortener/internal/utils"
 	"net/http"
@@ -16,6 +18,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"golang.org/x/exp/rand"
 )
 
@@ -35,8 +38,11 @@ var dbConfig = database.NewDBConfig(
 )
 var dbConnection, _ = dbConfig.Connect(ctx)
 var repository = repo.New(dbConnection)
-var handlers = handler.NewHandler(repository)
-var testServer = server.NewServer(r, handlers)
+var caching = cache.NewRedisClient(config)
+var exporter, _ = stdouttrace.New(stdouttrace.WithoutTimestamps())
+var tracing = otel.NewOpenTelemetry(exporter).GetTracer()
+var handlers = handler.NewHandler(repository, caching, tracing)
+var testServer = server.NewServer(r, handlers, tracing)
 
 func Benchmark_short_url(b *testing.B) {
 	ts := httptest.NewServer(testServer.Router)

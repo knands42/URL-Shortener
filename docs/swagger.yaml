@@ -3,11 +3,13 @@ definitions:
   handler.GenerateShortURLRequest:
     properties:
       input:
+        example: https://www.google.com
         type: string
     type: object
   handler.GenerateShortURLResponse:
     properties:
       short_url:
+        example: https://me.li/abc123
         type: string
     type: object
   handler.GetURLResponse:

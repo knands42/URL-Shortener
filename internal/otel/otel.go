@@ -26,6 +26,7 @@ func (ot *OpenTelemetry) GetTracer() trace.Tracer {
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
+	otel.Meter("url-shortener-app")
 	tracer := otel.Tracer("url-shortener-app")
 	return tracer
 }

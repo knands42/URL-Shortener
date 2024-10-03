@@ -19,6 +19,7 @@ type Config struct {
 	MinConns               int32  `mapstructure:"DB_MIN_CONNS"`
 	MaxConns               int32  `mapstructure:"DB_MAX_CONNS"`
 	JaegerExporterEndpoint string `mapstructure:"JAEGER_EXPORTER_ENDPOINT"`
+	RedisEndpoint          string `mapstructure:"REDIS_ENDPOINT"`
 }
 
 func NewConfig(env string) *Config {
