@@ -6,9 +6,11 @@ import (
 )
 
 type URLMetadataCacheData struct {
-	OriginalUrl    string
-	ShortUrl       string
-	NumberOfAccess int32
+	OriginalUrl    string `json:"original_url"`
+	ShortUrl       string `json:"short_url"`
+	NumberOfAccess int32  `json:"number_of_access"`
+	CreatedAt      string `json:"created_at"`
+	UpdatedAt      string `json:"updated_at"`
 }
 
 func (h *URLMetadataCacheData) marshal() (string, error) {

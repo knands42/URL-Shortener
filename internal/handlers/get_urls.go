@@ -41,7 +41,7 @@ func (h *Handler) GetOriginalUrl(w http.ResponseWriter, r *http.Request) {
 		originalUrl = cacheValue
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusMovedPermanently)
 	http.Redirect(w, r, originalUrl, http.StatusMovedPermanently)
 }
 

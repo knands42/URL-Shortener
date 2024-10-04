@@ -95,17 +95,21 @@ func generateEntry(b *testing.B, ts *httptest.Server) string {
 
 	// Send a POST request to the /api/v1/shorten endpoint
 	req, _ := http.NewRequest("POST", ts.URL+"/api/v1/shorten", bytes.NewBuffer(payloadBytes))
-	_, err = http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		b.Fatalf("Failed to send POST request: %v", err)
 	}
 
-	return url
+	var responseBody map[string]any
+	json.NewDecoder(resp.Body).Decode(&responseBody)
+
+	data, _ := responseBody["short_url"].(string)
+	return data
 }
 
 func getEntry(b *testing.B, ts *httptest.Server, url string) {
 	// Send a POST request to the /api/v1/shorten endpoint
-	req, _ := http.NewRequest("GET", ts.URL+"/api/v1/url?url="+url+"&type=original_url", nil)
+	req, _ := http.NewRequest("GET", ts.URL+"/api/v1/url?url="+url+"&type=short_url", nil)
 	_, err := http.DefaultClient.Do(req)
 	if err != nil {
 		b.Fatalf("Failed to send POST request: %v", err)

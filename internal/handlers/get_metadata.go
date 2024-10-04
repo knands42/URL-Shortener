@@ -12,6 +12,8 @@ type GetMetadataResponse struct {
 	OriginalUrl    string `json:"original_url"`
 	ShortUrl       string `json:"short_url"`
 	NumberOfAccess int32  `json:"number_of_access"`
+	CreatedAt      string `json:"created_at"`
+	UpdatedAt      string `json:"updated_at"`
 }
 
 // @Summary Get a URL entry
@@ -72,6 +74,8 @@ func (h *Handler) getMetadataFromShortUrl(ctx context.Context, url string) (GetM
 			OriginalUrl:    resultDB.OriginalUrl,
 			ShortUrl:       "https://me.li/" + resultDB.Hash,
 			NumberOfAccess: resultDB.NumberOfAccess,
+			CreatedAt:      resultDB.CreatedAt.Time.GoString(),
+			UpdatedAt:      resultDB.UpdatedAt.Time.GoString(),
 		}, nil
 	}
 
@@ -89,8 +93,10 @@ func (h *Handler) getMetadataFromOriginalUrl(ctx context.Context, url string) (G
 
 	return GetMetadataResponse{
 		OriginalUrl:    resultDB.OriginalUrl,
-		ShortUrl:       resultDB.Hash,
+		ShortUrl:       "https://me.li/" + resultDB.Hash,
 		NumberOfAccess: resultDB.NumberOfAccess,
+		CreatedAt:      resultDB.CreatedAt.Time.GoString(),
+		UpdatedAt:      resultDB.UpdatedAt.Time.GoString(),
 	}, nil
 }
 
@@ -117,6 +123,8 @@ func (h *Handler) persistMetaddataIntoCache(ctx context.Context, key string, res
 		OriginalUrl:    resultDB.OriginalUrl,
 		ShortUrl:       "https://me.li/" + resultDB.Hash,
 		NumberOfAccess: resultDB.NumberOfAccess,
+		CreatedAt:      resultDB.CreatedAt.Time.GoString(),
+		UpdatedAt:      resultDB.UpdatedAt.Time.GoString(),
 	}
 	cacheData, err := urlMetadataCacheData.marshal()
 	if err != nil {

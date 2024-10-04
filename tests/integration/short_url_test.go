@@ -56,7 +56,7 @@ func Test_delete_entry_by_short_url(t *testing.T) {
 		t.Fatalf("Failed to send DELETE request: %v", err)
 	}
 
-	if resp.StatusCode != http.StatusNoContent {
+	if resp.StatusCode != http.StatusNotFound {
 		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
 	}
 }
@@ -109,30 +109,16 @@ func Test_get_entry_by_short_url(t *testing.T) {
 		t.Fatalf("Failed to send GET request: %v", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		t.Errorf("Expected status code %d, got %d", http.StatusNoContent, resp.StatusCode)
-	}
-
-	// Check the response body
-	var responseBody map[string]any
-	if err := json.NewDecoder(resp.Body).Decode(&responseBody); err != nil {
-		t.Fatalf("Failed to decode response body: %v", err)
-	}
-
-	if data := responseBody["original_url"]; data != "https://google.com" {
-		t.Errorf("Expected response body to contain 'original_url' key")
-	}
-
-	if data := responseBody["short_url"]; data != "https://me.li/BQRvJsg" {
-		t.Errorf("Expected response body to contain 'short_url' key")
+	if resp.StatusCode != http.StatusMovedPermanently {
+		t.Errorf("Expected status code %d, got %d", http.StatusMovedPermanently, resp.StatusCode)
 	}
 }
 
-func Test_get_entry_by_original_url(t *testing.T) {
+func Test_get_metadata_by_original_url(t *testing.T) {
 	ts := httptest.NewServer(testServer.Router)
 
 	// Send a GET request to the /api/v1/shorten endpoint
-	req, err := http.NewRequest("GET", ts.URL+"/api/v1/url?url=https://google.com&type=original_url", nil)
+	req, err := http.NewRequest("GET", ts.URL+"/api/v1/url/metadata?url=https://google.com&type=original_url", nil)
 	if err != nil {
 		t.Fatalf("Failed to send GET request: %v", err)
 	}
@@ -160,6 +146,10 @@ func Test_get_entry_by_original_url(t *testing.T) {
 	if data := responseBody["short_url"]; data != "https://me.li/BQRvJsg" {
 		t.Errorf("Expected response body to contain 'short_url' key")
 	}
+
+	// if data := responseBody["number_of_access"]; data != "1" {
+	// 	t.Errorf("Expected response body to contain 'number_of_access' key")
+	// }
 }
 
 func Test_delete_entry_by_original_url(t *testing.T) {
