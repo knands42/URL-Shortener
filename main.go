@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	sdkTrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -54,7 +55,7 @@ func main() {
 	handlers := handler.NewHandler(repo, cache, tracing)
 	server.NewServer(r, handlers, tracing)
 
-	gracefulShutdown(dbConnection, jaeger)
+	gracefulShutdown(dbConnection, jaeger, cache)
 
 	err := http.ListenAndServe(":3333", r)
 	if err != nil {
@@ -62,7 +63,7 @@ func main() {
 	}
 }
 
-func gracefulShutdown(conn *pgxpool.Pool, jaeger sdkTrace.SpanExporter) {
+func gracefulShutdown(conn *pgxpool.Pool, jaeger sdkTrace.SpanExporter, cache *redis.Client) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
 		syscall.SIGHUP,  // kill -SIGHUP XXXX
@@ -82,6 +83,7 @@ func gracefulShutdown(conn *pgxpool.Pool, jaeger sdkTrace.SpanExporter) {
 		case <-time.After(30 * time.Second):
 			conn.Close()
 			jaeger.Shutdown(ctx)
+			cache.Close()
 		case <-ctx.Done():
 			fmt.Println("Graceful shutdown")
 		}

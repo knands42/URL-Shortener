@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="PvlTUjPj0u4iXz4PkVxB" name="Page-1">
-        <mxGraphModel dx="635" dy="1749" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1780" dy="1879" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -112,7 +112,7 @@
                     <mxGeometry x="190" y="315" width="170" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="73" value="Auto Managed Container&lt;br&gt;(Fargate, EKS, ECS Tasks, etc)" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
-                    <mxGeometry x="230" y="435" width="190" height="40" as="geometry"/>
+                    <mxGeometry x="270" y="430" width="190" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="78" style="edgeStyle=none;html=1;" parent="1" source="75" target="5" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -169,6 +169,18 @@
                 </mxCell>
                 <mxCell id="101" value="&lt;b style=&quot;font-size: 14px;&quot;&gt;SOME METRICS&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" parent="1" vertex="1">
                     <mxGeometry x="1045" y="200" width="130" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="103" style="edgeStyle=none;html=1;entryX=0.013;entryY=0.067;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="102" target="5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="107" style="edgeStyle=none;html=1;" edge="1" parent="1" source="102" target="105">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="102" value="JOBS" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="370" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="105" value="Job responsible to process async operations" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="-90" y="395" width="260" height="30" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

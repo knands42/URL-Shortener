@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS shortened_urls (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     original_url TEXT NOT NULL,
     hash VARCHAR(7) NOT NULL,
+    number_of_access INT NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
