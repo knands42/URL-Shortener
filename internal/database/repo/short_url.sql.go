@@ -15,7 +15,7 @@ INSERT INTO shortened_urls (
   hash
 ) VALUES (
   $1, $2
-) RETURNING id, original_url, hash, created_at, updated_at
+) RETURNING id, original_url, hash, number_of_access, created_at, updated_at
 `
 
 type CreateHashParams struct {
@@ -30,6 +30,7 @@ func (q *Queries) CreateHash(ctx context.Context, arg CreateHashParams) (Shorten
 		&i.ID,
 		&i.OriginalUrl,
 		&i.Hash,
+		&i.NumberOfAccess,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -55,7 +56,7 @@ func (q *Queries) DeleteByOriginalUrl(ctx context.Context, originalUrl string) e
 }
 
 const getByHash = `-- name: GetByHash :one
-SELECT id, original_url, hash, created_at, updated_at FROM shortened_urls WHERE hash = $1
+SELECT id, original_url, hash, number_of_access, created_at, updated_at FROM shortened_urls WHERE hash = $1
 `
 
 func (q *Queries) GetByHash(ctx context.Context, hash string) (ShortenedUrl, error) {
@@ -65,6 +66,7 @@ func (q *Queries) GetByHash(ctx context.Context, hash string) (ShortenedUrl, err
 		&i.ID,
 		&i.OriginalUrl,
 		&i.Hash,
+		&i.NumberOfAccess,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -72,7 +74,7 @@ func (q *Queries) GetByHash(ctx context.Context, hash string) (ShortenedUrl, err
 }
 
 const getByOriginalUrl = `-- name: GetByOriginalUrl :one
-SELECT id, original_url, hash, created_at, updated_at FROM shortened_urls WHERE original_url = $1
+SELECT id, original_url, hash, number_of_access, created_at, updated_at FROM shortened_urls WHERE original_url = $1
 `
 
 func (q *Queries) GetByOriginalUrl(ctx context.Context, originalUrl string) (ShortenedUrl, error) {
@@ -82,6 +84,7 @@ func (q *Queries) GetByOriginalUrl(ctx context.Context, originalUrl string) (Sho
 		&i.ID,
 		&i.OriginalUrl,
 		&i.Hash,
+		&i.NumberOfAccess,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

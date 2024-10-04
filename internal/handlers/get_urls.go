@@ -7,6 +7,8 @@ import (
 	"knands42/url-shortener/internal/utils"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type GetURLResponse struct {
@@ -19,24 +21,19 @@ type GetURLResponse struct {
 // @Tags URL
 // @Accept json
 // @Produce json
-// @Param url query string true "URL to be deleted" "https://www.google.com"
 // @Param type query string true "Type of URL to be deleted (short_url or original_url)" "original_url"
 // @Success 200 {object} GetURLResponse
 // @Failure 404 {object} utils.ErrorResponse
 // @Failure 500 {object} utils.ErrorResponse
-// @Router /url [get]
+// @Router /url/{url} [get]
 func (h *Handler) GetUrl(w http.ResponseWriter, r *http.Request) {
 	ctx, span := h.tracing.Start(r.Context(), "GetUrl")
 	defer span.End()
 
 	urlTypeQueryParam := r.URL.Query().Get("type")
-	urlQueryParam := r.URL.Query().Get("url")
-	if urlQueryParam == "" {
-		http.Error(w, "URL is required", http.StatusBadRequest)
-		return
-	}
+	urlPathParam := chi.URLParam(r, "url")
 
-	queryParamToSearch := h.extractHashFromUrlIfThereIsAny(urlTypeQueryParam, urlQueryParam)
+	queryParamToSearch := h.extractHashFromUrlIfThereIsAny(urlTypeQueryParam, urlPathParam)
 	var err error
 	var resultDB repo.ShortenedUrl
 	var cacheValue string

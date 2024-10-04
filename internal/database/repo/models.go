@@ -9,9 +9,10 @@ import (
 )
 
 type ShortenedUrl struct {
-	ID          pgtype.UUID        `json:"id"`
-	OriginalUrl string             `json:"original_url"`
-	Hash        string             `json:"hash"`
-	CreatedAt   pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	ID             pgtype.UUID        `json:"id"`
+	OriginalUrl    string             `json:"original_url"`
+	Hash           string             `json:"hash"`
+	NumberOfAccess int32              `json:"number_of_access"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
