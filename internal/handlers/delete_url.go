@@ -28,33 +28,36 @@ func (h *Handler) DeleteURL(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	if urlTypeQuertParam == URL_TYPE_SHORT {
-		err = h.deleteUsingOriginalUrl(ctx, urlQueryParam)
-	} else {
 		err = h.deleteUsingShortUrl(ctx, urlQueryParam)
+	} else {
+		err = h.deleteUsingOriginalUrl(ctx, urlQueryParam)
 	}
 
 	if err != nil {
 		notFound(w, err, "URL not found")
 		return
-
 	}
 
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *Handler) deleteUsingOriginalUrl(ctx context.Context, originalUrl string) error {
-	cacheKey := h.extractHashFromUrl(originalUrl)
-	err := h.repo.DeleteByHash(ctx, cacheKey)
+func (h *Handler) deleteUsingShortUrl(ctx context.Context, shortUrl string) error {
+	hash := h.extractHashFromUrl(shortUrl)
+	err := h.repo.DeleteByHash(ctx, hash)
 	if err != nil {
 		return err
 	}
-	return h.deleteFromCache(ctx, cacheKey)
+	err = h.deleteFromCache(ctx, hash)
+	if err != nil {
+		return err
+	}
+	return h.deleteFromCache(ctx, hash+":metadata")
 }
 
-func (h *Handler) deleteUsingShortUrl(ctx context.Context, shortUrl string) error {
-	err := h.repo.DeleteByOriginalUrl(ctx, shortUrl)
+func (h *Handler) deleteUsingOriginalUrl(ctx context.Context, originalUrl string) error {
+	data, err := h.repo.GetByOriginalUrl(ctx, originalUrl)
 	if err != nil {
 		return err
 	}
-	return h.deleteFromCache(ctx, shortUrl)
+	return h.deleteUsingShortUrl(ctx, data.Hash)
 }

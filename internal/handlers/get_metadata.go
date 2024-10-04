@@ -6,8 +6,6 @@ import (
 	"knands42/url-shortener/internal/database/repo"
 	"log"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
 )
 
 type GetMetadataResponse struct {
@@ -16,19 +14,29 @@ type GetMetadataResponse struct {
 	NumberOfAccess int32  `json:"number_of_access"`
 }
 
+// @Summary Get a URL entry
+// @Description Get information about any URL entry by providing the original URL or the shortened URL
+// @Tags URL
+// @Accept json
+// @Produce json
+// @Param url query string true "URL to get metadata for"
+// @Param type query string false "Type of URL (short_url or original_url)"
+// @Success 200 {object} GetMetadataResponse
+// @Failure 404 {object} utils.NotFoundErrorResponse
+// @Router /url/metadata [get]
 func (h *Handler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	ctx, span := h.tracing.Start(r.Context(), "GetMetadata")
 	defer span.End()
 
 	urlTypeQueryParam := r.URL.Query().Get("type")
-	urlPathParam := chi.URLParam(r, "url")
+	urlQueryParam := r.URL.Query().Get("url")
 
 	var err error
 	var resp GetMetadataResponse
 	if urlTypeQueryParam == URL_TYPE_ORIGINAL {
-		resp, err = h.getMetadataFromUrl(ctx, urlPathParam, false)
+		resp, err = h.getMetadataFromOriginalUrl(ctx, urlQueryParam)
 	} else {
-		resp, err = h.getMetadataFromUrl(ctx, urlPathParam, true)
+		resp, err = h.getMetadataFromShortUrl(ctx, urlQueryParam)
 	}
 
 	if err != nil {
@@ -40,20 +48,17 @@ func (h *Handler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (h *Handler) getMetadataFromUrl(ctx context.Context, url string, isShortUrl bool) (GetMetadataResponse, error) {
+func (h *Handler) getMetadataFromShortUrl(ctx context.Context, url string) (GetMetadataResponse, error) {
 	ctx, span := h.tracing.Start(ctx, "GetMetadataFromShortenedUrl")
 	defer span.End()
 
-	var hash string
-	if isShortUrl {
-		hash = h.extractHashFromUrl(url)
-	}
+	hash := h.extractHashFromUrl(url)
 
-	cacheKey := buildCacheKeyForMedatada(url, hash, isShortUrl)
+	cacheKey := hash + ":metadata"
 	cacheValue, err := h.getMetadataFromCache(ctx, cacheKey)
 	if err != nil {
 		log.Printf("Cache miss for %s: %v", hash, err.Error())
-		resultDB, err := h.getMetadataFromRepo(ctx, url, hash, isShortUrl)
+		resultDB, err := h.repo.GetByHash(ctx, hash)
 		if err != nil {
 			return GetMetadataResponse{}, err
 		}
@@ -70,26 +75,23 @@ func (h *Handler) getMetadataFromUrl(ctx context.Context, url string, isShortUrl
 		}, nil
 	}
 
+	return GetMetadataResponse(cacheValue), nil
+}
+
+func (h *Handler) getMetadataFromOriginalUrl(ctx context.Context, url string) (GetMetadataResponse, error) {
+	ctx, span := h.tracing.Start(ctx, "GetMetadataFromOriginalUrl")
+	defer span.End()
+
+	resultDB, err := h.repo.GetByOriginalUrl(ctx, url)
+	if err != nil {
+		return GetMetadataResponse{}, err
+	}
+
 	return GetMetadataResponse{
-		OriginalUrl:    cacheValue.OriginalUrl,
-		ShortUrl:       cacheValue.ShortUrl,
-		NumberOfAccess: cacheValue.NumberOfAccess,
+		OriginalUrl:    resultDB.OriginalUrl,
+		ShortUrl:       resultDB.Hash,
+		NumberOfAccess: resultDB.NumberOfAccess,
 	}, nil
-}
-
-func buildCacheKeyForMedatada(url, hash string, isShort bool) string {
-	if isShort {
-		return hash + ":short"
-	}
-	return url + ":original"
-}
-
-func (h *Handler) getMetadataFromRepo(ctx context.Context, url, hash string, isShortUrl bool) (repo.ShortenedUrl, error) {
-	if isShortUrl {
-		return h.repo.GetByHash(ctx, hash)
-	} else {
-		return h.repo.GetByOriginalUrl(ctx, url)
-	}
 }
 
 func (h *Handler) getMetadataFromCache(ctx context.Context, key string) (URLMetadataCacheData, error) {

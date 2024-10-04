@@ -5,35 +5,27 @@ import (
 	"knands42/url-shortener/internal/database/repo"
 	"log"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
 )
-
-type GetURLResponse struct {
-	OriginalUrl string `json:"original_url"`
-	ShortUrl    string `json:"short_url"`
-}
 
 // @Summary Get a URL entry
 // @Description Get the original url from the shortened url and redirect to it
 // @Tags URL
 // @Accept json
 // @Produce json
-// @Success 200 {object} GetURLResponse
-// @Failure 404 {object} utils.ErrorResponse
-// @Failure 500 {object} utils.ErrorResponse
-// @Router /url/{url} [get]
+// @Param url query string true "URL to get metadata for"
+// @Failure 404 {object} utils.NotFoundErrorResponse
+// @Router /url [get]
 func (h *Handler) GetOriginalUrl(w http.ResponseWriter, r *http.Request) {
 	ctx, span := h.tracing.Start(r.Context(), "GetUrl")
 	defer span.End()
 
-	urlPathParam := chi.URLParam(r, "url")
+	urlQueryParam := r.URL.Query().Get("url")
 
-	hash := h.extractHashFromUrl(urlPathParam)
+	hash := h.extractHashFromUrl(urlQueryParam)
 	var err error
 	var resultDB repo.ShortenedUrl
 	var cacheValue string
-	var result = GetURLResponse{}
+	var originalUrl string
 
 	cacheValue, err = h.checkCacheFirst(ctx, hash)
 	if err != nil {
@@ -44,13 +36,13 @@ func (h *Handler) GetOriginalUrl(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		h.saveIntoCache(ctx, resultDB.Hash, resultDB.OriginalUrl)
-		populateResultFromDB(&result, resultDB)
+		originalUrl = resultDB.OriginalUrl
 	} else {
-		populateResultFromCache(&result, hash, cacheValue)
+		originalUrl = cacheValue
 	}
 
 	w.WriteHeader(http.StatusOK)
-	http.Redirect(w, r, result.OriginalUrl, http.StatusMovedPermanently)
+	http.Redirect(w, r, originalUrl, http.StatusMovedPermanently)
 }
 
 func (h *Handler) getOriginalUrlFromRepo(ctx context.Context, valueParameter string) (repo.ShortenedUrl, error) {
@@ -58,14 +50,4 @@ func (h *Handler) getOriginalUrlFromRepo(ctx context.Context, valueParameter str
 	defer span.End()
 
 	return h.repo.GetByHash(ctx, valueParameter)
-}
-
-func populateResultFromCache(resp *GetURLResponse, key, value string) {
-	resp.OriginalUrl = value
-	resp.ShortUrl = "https://me.li/" + key
-}
-
-func populateResultFromDB(resp *GetURLResponse, resultDB repo.ShortenedUrl) {
-	resp.OriginalUrl = resultDB.OriginalUrl
-	resp.ShortUrl = "https://me.li/" + resultDB.Hash
 }

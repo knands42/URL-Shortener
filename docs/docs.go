@@ -55,16 +55,16 @@ const docTemplate = `{
                             "$ref": "#/definitions/handler.GenerateShortURLResponse"
                         }
                     },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.BadRequestErrorResponse"
+                        }
+                    },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/utils.ConflictErrorResponse"
                         }
                     }
                 }
@@ -72,7 +72,7 @@ const docTemplate = `{
         },
         "/url": {
             "get": {
-                "description": "Get a URL entry by providing either the original URL or the short URL",
+                "description": "Get the original url from the shortened url and redirect to it",
                 "consumes": [
                     "application/json"
                 ],
@@ -86,36 +86,17 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "URL to be deleted",
+                        "description": "URL to get metadata for",
                         "name": "url",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Type of URL to be deleted (short_url or original_url)",
-                        "name": "type",
                         "in": "query",
                         "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/handler.GetURLResponse"
-                        }
-                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/utils.NotFoundErrorResponse"
                         }
                     }
                 }
@@ -152,10 +133,54 @@ const docTemplate = `{
                     "204": {
                         "description": "No Content"
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/utils.NotFoundErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/url/metadata": {
+            "get": {
+                "description": "Get information about any URL entry by providing the original URL or the shortened URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "URL"
+                ],
+                "summary": "Get a URL entry",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL to get metadata for",
+                        "name": "url",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type of URL (short_url or original_url)",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handler.GetMetadataResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.NotFoundErrorResponse"
                         }
                     }
                 }
@@ -181,9 +206,12 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.GetURLResponse": {
+        "handler.GetMetadataResponse": {
             "type": "object",
             "properties": {
+                "number_of_access": {
+                    "type": "integer"
+                },
                 "original_url": {
                     "type": "string"
                 },
@@ -192,14 +220,42 @@ const docTemplate = `{
                 }
             }
         },
-        "utils.ErrorResponse": {
+        "utils.BadRequestErrorResponse": {
             "type": "object",
             "properties": {
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Bad request"
                 },
                 "status": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 400
+                }
+            }
+        },
+        "utils.ConflictErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Conflict"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 409
+                }
+            }
+        },
+        "utils.NotFoundErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "URL not found"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 404
                 }
             }
         }

@@ -45,13 +45,7 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 
 	_, err = govalidator.ValidateStruct(req)
 	if err != nil {
-		validatorErrorResponse := utils.BadRequestErrorResponse{
-			Status:  http.StatusBadRequest,
-			Message: err.Error(),
-		}
-		log.Printf("Validation error: %v", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(validatorErrorResponse)
+		validationError(w, err)
 		return
 	}
 
@@ -89,6 +83,16 @@ func conflict(w http.ResponseWriter, err error) {
 	}
 	log.Printf("URL already exists: %v", err.Error())
 	w.WriteHeader(http.StatusConflict)
+	json.NewEncoder(w).Encode(errorResponse)
+}
+
+func validationError(w http.ResponseWriter, err error) {
+	errorResponse := utils.BadRequestErrorResponse{
+		Status:  http.StatusBadRequest,
+		Message: "Validation error",
+	}
+	log.Printf("Validation error: %v", err.Error())
+	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(errorResponse)
 }
 
