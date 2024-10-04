@@ -26,7 +26,7 @@ func defaultErrorHandler(next http.Handler) http.Handler {
 			if err := recover(); err != nil {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
-				json.NewEncoder(w).Encode(utils.ErrorResponse{
+				json.NewEncoder(w).Encode(utils.InternalServerErrorResponse{
 					Status:  http.StatusInternalServerError,
 					Message: "Internal Server Error",
 				})

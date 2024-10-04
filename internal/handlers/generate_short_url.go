@@ -29,8 +29,8 @@ type GenerateShortURLResponse struct {
 // @Produce json
 // @Param input body GenerateShortURLRequest true "Input URL"
 // @Success 201 {object} GenerateShortURLResponse
-// @Failure 409 {object} utils.ErrorResponse
-// @Failure 500 {object} utils.ErrorResponse
+// @Failure 400 {object} utils.BadRequestErrorResponse
+// @Failure 409 {object} utils.ConflictErrorResponse
 // @Router /shorten [post]
 func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 	ctx, span := h.tracing.Start(r.Context(), "GenerateShortURL")
@@ -45,7 +45,7 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 
 	_, err = govalidator.ValidateStruct(req)
 	if err != nil {
-		validatorErrorResponse := utils.ErrorResponse{
+		validatorErrorResponse := utils.BadRequestErrorResponse{
 			Status:  http.StatusBadRequest,
 			Message: err.Error(),
 		}
@@ -68,24 +68,28 @@ func (h *Handler) GenerateShortURL(w http.ResponseWriter, r *http.Request) {
 		},
 	)
 	if err != nil {
-		errorResponse := utils.ErrorResponse{
-			Status:  http.StatusConflict,
-			Message: "URL already exists",
-		}
-		log.Printf("URL already exists: %v", err.Error())
-		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(errorResponse)
+		conflict(w, err)
 		return
 	}
 
 	hash := base62Hash[:length]
-	h.writeThroughCache(ctx, hash, input)
+	h.saveIntoCache(ctx, hash, input)
 
 	generateShortURLResponse := GenerateShortURLResponse{
 		ShortURL: "https://me.li/" + hash,
 	}
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(generateShortURLResponse)
+}
+
+func conflict(w http.ResponseWriter, err error) {
+	errorResponse := utils.ConflictErrorResponse{
+		Status:  http.StatusConflict,
+		Message: "URL already exists",
+	}
+	log.Printf("URL already exists: %v", err.Error())
+	w.WriteHeader(http.StatusConflict)
+	json.NewEncoder(w).Encode(errorResponse)
 }
 
 func generateHash(input string, length int) string {

@@ -40,6 +40,10 @@ import (
 
 // @host		localhost:3333
 // @BasePath	/api/v1
+// @schemes	http
+// @produce	json
+// @consumes	json
+// @failure	500 {object} utils.InternalServerErrorResponse
 func main() {
 	ctx := context.Background()
 	r := chi.NewRouter()

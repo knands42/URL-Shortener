@@ -1,6 +1,25 @@
 package handler
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+)
+
+type URLMetadataCacheData struct {
+	OriginalUrl    string
+	ShortUrl       string
+	NumberOfAccess int32
+}
+
+func (h *URLMetadataCacheData) marshal() (string, error) {
+	jsonData, err := json.Marshal(h)
+	return string(jsonData), err
+}
+
+func (h *URLMetadataCacheData) unmarshal(data string) error {
+	err := json.Unmarshal([]byte(data), h)
+	return err
+}
 
 func (h *Handler) checkCacheFirst(ctx context.Context, key string) (string, error) {
 	ctx, span := h.tracing.Start(ctx, "GetUrlFromCache")
@@ -24,17 +43,6 @@ func (h *Handler) saveIntoCache(ctx context.Context, key string, value string) e
 	}
 
 	return nil
-}
-
-func (h *Handler) writeThroughCache(
-	ctx context.Context,
-	hash string,
-	url string,
-) {
-	cacheShortKey := hash
-	cacheOriginalKey := url
-	h.saveIntoCache(ctx, cacheShortKey, url)
-	h.saveIntoCache(ctx, cacheOriginalKey, hash)
 }
 
 func (h *Handler) deleteFromCache(ctx context.Context, cacheKey string) error {

@@ -71,7 +71,7 @@ The choice between SQL and NoSQL databases was made based on the fact that the a
 
 In the future more metadata will be added like user information and how they are accessing and generating new short urls, so a SQL database will help with the relationships between the tables, but this the current implementation no need to extract the most of the **3rd normal form**.
 
-**RDS Aurora** would be one of the best choice for a production environment since it was build to scale horizontally.
+**RDS Aurora** would be one of the best choice for a production environment since it was build to scale horizontally, but also keeping in mind that **sharding** (another way to scale SQL databases) comes out of the box with a NoSQL database like **MongoDB**.
 
 ### Caching
 

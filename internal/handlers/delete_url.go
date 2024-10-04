@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"encoding/json"
-	"knands42/url-shortener/internal/utils"
-	"log"
+	"context"
 	"net/http"
 )
 
@@ -15,10 +13,10 @@ import (
 // @Param url query string true "URL to be deleted"
 // @Param type query string true "Type of URL to be deleted (short_url or original_url)"
 // @Success 204
-// @Failure 500 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.NotFoundErrorResponse
 // @Router /url [delete]
 func (h *Handler) DeleteURL(w http.ResponseWriter, r *http.Request) {
-	ctx, span := h.tracing.Start(r.Context(), "GenerateShortURL")
+	ctx, span := h.tracing.Start(r.Context(), "DeleteURL")
 	defer span.End()
 
 	urlQueryParam := r.URL.Query().Get("url")
@@ -30,25 +28,33 @@ func (h *Handler) DeleteURL(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 	if urlTypeQuertParam == URL_TYPE_SHORT {
-		hash := h.extractHashFromUrl(urlQueryParam)
-		err = h.repo.DeleteByHash(ctx, hash)
-		h.deleteFromCache(ctx, hash)
+		err = h.deleteUsingOriginalUrl(ctx, urlQueryParam)
 	} else {
-		err = h.repo.DeleteByOriginalUrl(ctx, urlQueryParam)
-		h.deleteFromCache(ctx, urlQueryParam)
+		err = h.deleteUsingShortUrl(ctx, urlQueryParam)
 	}
 
 	if err != nil {
-		errorResponse := utils.ErrorResponse{
-			Status:  http.StatusNotFound,
-			Message: "URL not found",
-		}
-		log.Printf("URL not found: %v", err.Error())
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(errorResponse)
+		notFound(w, err, "URL not found")
 		return
 
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) deleteUsingOriginalUrl(ctx context.Context, originalUrl string) error {
+	cacheKey := h.extractHashFromUrl(originalUrl)
+	err := h.repo.DeleteByHash(ctx, cacheKey)
+	if err != nil {
+		return err
+	}
+	return h.deleteFromCache(ctx, cacheKey)
+}
+
+func (h *Handler) deleteUsingShortUrl(ctx context.Context, shortUrl string) error {
+	err := h.repo.DeleteByOriginalUrl(ctx, shortUrl)
+	if err != nil {
+		return err
+	}
+	return h.deleteFromCache(ctx, shortUrl)
 }
