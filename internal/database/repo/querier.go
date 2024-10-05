@@ -14,6 +14,7 @@ type Querier interface {
 	DeleteByOriginalUrl(ctx context.Context, originalUrl string) error
 	GetByHash(ctx context.Context, hash string) (ShortenedUrl, error)
 	GetByOriginalUrl(ctx context.Context, originalUrl string) (ShortenedUrl, error)
+	IncreaseNumberOfAccesses(ctx context.Context, hash string) error
 }
 
 var _ Querier = (*Queries)(nil)

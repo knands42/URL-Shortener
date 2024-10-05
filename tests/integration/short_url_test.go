@@ -109,8 +109,8 @@ func Test_get_entry_by_short_url(t *testing.T) {
 		t.Fatalf("Failed to send GET request: %v", err)
 	}
 
-	if resp.StatusCode != http.StatusMovedPermanently {
-		t.Errorf("Expected status code %d, got %d", http.StatusMovedPermanently, resp.StatusCode)
+	if resp.StatusCode != http.StatusTemporaryRedirect {
+		t.Errorf("Expected status code %d, got %d", http.StatusTemporaryRedirect, resp.StatusCode)
 	}
 }
 

@@ -14,11 +14,20 @@ definitions:
     type: object
   handler.GetMetadataResponse:
     properties:
+      created_at:
+        example: "2021-09-01 12:00:00"
+        type: string
       number_of_access:
+        example: 0
         type: integer
       original_url:
+        example: https://www.google.com
         type: string
       short_url:
+        example: https://me.li/abc123
+        type: string
+      updated_at:
+        example: "2021-09-01 12:00:00"
         type: string
     type: object
   utils.BadRequestErrorResponse:

@@ -41,8 +41,10 @@ func (h *Handler) GetOriginalUrl(w http.ResponseWriter, r *http.Request) {
 		originalUrl = cacheValue
 	}
 
-	w.WriteHeader(http.StatusMovedPermanently)
-	http.Redirect(w, r, originalUrl, http.StatusMovedPermanently)
+	h.increaseNumberOfAccess(ctx, hash)
+
+	w.WriteHeader(http.StatusTemporaryRedirect)
+	http.Redirect(w, r, originalUrl, http.StatusTemporaryRedirect)
 }
 
 func (h *Handler) getOriginalUrlFromRepo(ctx context.Context, valueParameter string) (repo.ShortenedUrl, error) {
@@ -50,4 +52,11 @@ func (h *Handler) getOriginalUrlFromRepo(ctx context.Context, valueParameter str
 	defer span.End()
 
 	return h.repo.GetByHash(ctx, valueParameter)
+}
+
+func (h *Handler) increaseNumberOfAccess(ctx context.Context, hash string) error {
+	ctx, span := h.tracing.Start(ctx, "IncreaseNumberOfAccess")
+	defer span.End()
+
+	return h.repo.IncreaseNumberOfAccesses(ctx, hash)
 }

@@ -209,14 +209,25 @@ const docTemplate = `{
         "handler.GetMetadataResponse": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "type": "string",
+                    "example": "2021-09-01 12:00:00"
+                },
                 "number_of_access": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 0
                 },
                 "original_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://www.google.com"
                 },
                 "short_url": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "https://me.li/abc123"
+                },
+                "updated_at": {
+                    "type": "string",
+                    "example": "2021-09-01 12:00:00"
                 }
             }
         },
