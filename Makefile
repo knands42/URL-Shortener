@@ -6,9 +6,10 @@ DB_URL_TEST ?= postgres://postgres:postgres@localhost:5434/url_shortener_test?ss
 ############################### Requirements ###############################
 setup:
 	go install github.com/swaggo/swag/cmd/swag@latest
-	go install github.com/golang-migrate/migrate/v4
 	go install golang.org/x/perf/cmd/benchstat@latest
-	pip install bzt
+	brew install golang-migrate
+	python3 -m venv ./.venv
+	./.venv/bin/pip install bzt
 
 ############################### Migrate ###############################
 create-migration:
@@ -33,6 +34,9 @@ gen-docs:
 ############################### App ###############################
 run-dev:
 	go run main.go
+
+stop-b-and-r:
+	killall -e url_shortener	
 
 build-and-run:
 	go build -o url_shortener main.go
